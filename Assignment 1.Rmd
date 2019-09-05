@@ -1,0 +1,351 @@
+---
+title: "Assignment 1"
+author: "Hans"
+date: "9/5/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Define the model and plot flow field, null clines and one trajectory
+```{r define_model}
+library("phaseR")
+
+# define 2D ODE model
+
+model = function(timepoint, state, parameters) { 
+  with(as.list(c(state, parameters)), {
+    dx = -2 * x - 3 * y 
+    dy = -x - 2 * y 
+    list(c(dx, dy))
+  }) 
+}
+
+# for setting the axis limits
+xlim = c(-10, 10) 
+ylim = c(-10, 10)
+
+# no parameters in the ODE, so we set pars as an empty vector
+pars = vector()
+# draw vector field
+model.flowField = flowField(xlab = "x", ylab = "y", model, 
+                            xlim = xlim, ylim = ylim, 
+                            parameters = pars, 
+                            points = 19, add = FALSE, 
+                            state.names = c("x", "y"))
+
+# draw nullclines
+model.nullclines = nullclines(model, xlim = xlim, ylim = ylim,
+                              parameters = pars,
+                              points = 500, state.names = c("x", "y"))
+
+# draw trajectory
+model.trajectory = trajectory(model, y0 = c(-5, -5), tlim = c(0, 10), 
+                              parameters = pars, state.names = c("x", "y"))
+eq = locator(n = 1)
+```
+
+# Calulate the x and y over time
+```{r}
+# perform numerical simulation and plot end result
+model.numericalSolution = numericalSolution(model, y0 = c(-5, -5), 
+                                            tlim = c(0, 20), type = "one",
+                                            parameters = pars, 
+                                            col = c("green", "orange"), 
+                                            ylim = ylim, add.legend = F)
+# make legend for plot
+legend("topright", col = c("green", "orange"), legend = c("x", "y"), lty = 1)
+eq = locator(n = 1)
+```
+
+# Question 1: Calculate the stability at the selected equilibrium
+```{r}
+
+stab = stability(model, parameters = pars, system = "two.dim",
+                 ystar=c(0, 0), state.names = c("x", "y"))
+```
+
+# Question 3: Use phasePlaneAnalysis
+
+This you need to run from the console  
+
+
+  phasePlaneAnalysis(model, xlim = xlim, ylim = ylim, parameters = pars)
+
+
+# Questions 4 - 8
+
+```{r}
+model4 = function(timepoint, state, parameters) { 
+  with(as.list(c(state, parameters)), {
+    dx = -x + 2*y 
+    dy = -5*x - y 
+    list(c(dx, dy))
+  }) 
+}
+
+model5 = function(timepoint, state, parameters) { 
+  with(as.list(c(state, parameters)), {
+    dx = -3*x - 2*y 
+    dy = -2*x - y 
+    list(c(dx, dy))
+  }) 
+}
+
+model6 = function(timepoint, state, parameters) { 
+  with(as.list(c(state, parameters)), {
+    dx = 2*x + y 
+    dy = -6*x - 2*y 
+    list(c(dx, dy))
+  }) 
+}
+
+
+model7 = function(timepoint, state, parameters) { 
+  with(as.list(c(state, parameters)), {
+    dx = x + 3*y 
+    dy = -3*x + 2*y 
+    list(c(dx, dy))
+  }) 
+}
+
+model8 = function(timepoint, state, parameters) { 
+  with(as.list(c(state, parameters)), {
+    dx = 2*x + 0.5*y 
+    dy = -2*x + 5*y 
+    list(c(dx, dy))
+  }) 
+}
+
+
+# for setting the axis limits
+xlim = c(-10, 10) 
+ylim = c(-10, 10)
+
+# no parameters in the ODE, so we set pars as an empty vector
+pars = vector()
+
+# It is possible to do all models in a loop, ithout changing the equilibrium, because the equiolibrium is the same for all models
+
+for (mod in c(model4, model5, model6, model7, model8)) {
+  
+  # draw vector field
+  model.flowField = flowField(xlab = "x", ylab = "y", mod, 
+                              xlim = xlim, ylim = ylim, 
+                              parameters = pars, 
+                              points = 19, add = FALSE, 
+                              state.names = c("x", "y"))
+
+  # draw nullclines
+  model.nullclines = nullclines(mod, xlim = xlim, ylim = ylim,
+                                parameters = pars,
+                                points = 500, state.names = c("x", "y"))
+
+  # draw trajectory
+  #for (start in c( c(5,5), c(-5,-5))) {
+  #  model.trajectory = trajectory(mod, y0 = c(start[1], start[2]), 
+  #                                tlim = c(0, 10), 
+  #                                parameters = pars, state.names = c("x", "y"))
+  #}
+  
+  model.trajectory = trajectory(mod, y0 = c(-5, -5), 
+                                tlim = c(0, 10), 
+                                parameters = pars, state.names = c("x", "y"))
+  model.trajectory = trajectory(mod, y0 = c(-5, 5), 
+                                tlim = c(0, 10), 
+                                parameters = pars, state.names = c("x", "y"))
+  model.trajectory = trajectory(mod, y0 = c(5, -5), 
+                                tlim = c(0, 10), 
+                                parameters = pars, state.names = c("x", "y"))
+  model.trajectory = trajectory(mod, y0 = c(5, 5), 
+                                tlim = c(0, 10), 
+                                parameters = pars, state.names = c("x", "y"))
+  # Calculate the stability at the selected equilibrium
+  stab = stability(mod, parameters = pars, system = "two.dim",
+                 ystar=c(0, 0), state.names = c("x", "y"))
+  
+}
+```
+
+# Question 10 NFkB oscillations with S = 0
+
+```{r}
+nfkb = function(timepoint, state, parameters) { 
+  with(as.list(c(state, parameters)), {
+    dI = -S + a*N - b*I 
+    dN = -c*I - d*N 
+    list(c(dI, dN))
+  }) 
+}
+
+pars = c(a=1, b=1, c=1, d=1, S=0)
+
+# for setting the axis limits
+xlim = c(-10, 10) 
+ylim = c(-10, 10)
+
+# draw vector field
+model.flowField = flowField(xlab = "I", ylab = "N", nfkb, 
+                            xlim = xlim, ylim = ylim, 
+                            parameters = pars, 
+                            points = 19, add = FALSE, 
+                            state.names = c("I", "N"))
+
+# draw nullclines
+model.nullclines = nullclines(nfkb, xlim = xlim, ylim = ylim,
+                              parameters = pars,
+                              points = 500, state.names = c("I", "N"))
+
+# draw trajectory
+model.trajectory = trajectory(nfkb, y0 = c(-5, -5), tlim = c(0, 10), 
+                              parameters = pars, state.names = c("I", "N"))
+
+# Calulate the N and I over time
+model.numericalSolution = numericalSolution(nfkb, y0 = c(-5, -5), 
+                                            tlim = c(0, 20), type = "one",
+                                            parameters = pars, 
+                                            state.names = c("I", "N"),
+                                            col = c("green", "orange"), 
+                                            ylim = ylim, add.legend = F)
+# make legend for plot
+legend("topright", col = c("green", "orange"), legend = c("x", "y"), lty = 1)
+
+# Determine stability
+stab = stability(nfkb, parameters = pars, system = "two.dim",
+                 ystar=c(0, 0), state.names = c("I", "N"))
+
+```
+
+# Question 11 NFkB oscillations with S != 0
+
+```{r}
+nfkb = function(timepoint, state, parameters) { 
+  with(as.list(c(state, parameters)), {
+    dI = -S + a*N - b*I 
+    dN = -c*I - d*N 
+    list(c(dI, dN))
+  }) 
+}
+
+pars = c(a=1, b=1, c=1, d=1, S=10)
+
+# for setting the axis limits
+xlim = c(-10, 10) 
+ylim = c(-10, 10)
+
+# draw vector field
+model.flowField = flowField(xlab = "I", ylab = "N", nfkb, 
+                            xlim = xlim, ylim = ylim, 
+                            parameters = pars, 
+                            points = 19, add = FALSE, 
+                            state.names = c("I", "N"))
+
+# draw nullclines
+model.nullclines = nullclines(nfkb, xlim = xlim, ylim = ylim,
+                              parameters = pars,
+                              points = 500, state.names = c("I", "N"))
+
+# draw trajectory
+model.trajectory = trajectory(nfkb, y0 = c(-5, -5), tlim = c(0, 10), 
+                              parameters = pars, state.names = c("I", "N"))
+
+# Calulate the N and I over time
+model.numericalSolution = numericalSolution(nfkb, y0 = c(-5, -5), 
+                                            tlim = c(0, 20), type = "one",
+                                            parameters = pars, 
+                                            state.names = c("I", "N"),
+                                            col = c("green", "orange"), 
+                                            ylim = ylim, add.legend = F)
+# make legend for plot
+legend("topright", col = c("green", "orange"), legend = c("x", "y"), lty = 1)
+
+# Determine stability
+stab = stability(nfkb, parameters = pars, system = "two.dim",
+                 ystar=c(0, 0), state.names = c("I", "N"))
+
+```
+
+# Question 17 Auto inhibition removed
+
+This means that parameters b and d become 0
+
+```{r}
+pars = c(a=1, b=0, c=1, d=0, S=10)
+
+# for setting the axis limits
+xlim = c(-10, 10) 
+ylim = c(-40, 40)
+
+# draw vector field
+model.flowField = flowField(xlab = "I", ylab = "N", nfkb, 
+                            xlim = xlim, ylim = ylim, 
+                            parameters = pars, 
+                            points = 19, add = FALSE, 
+                            state.names = c("I", "N"))
+
+# draw nullclines
+model.nullclines = nullclines(nfkb, xlim = xlim, ylim = ylim,
+                              parameters = pars,
+                              points = 500, state.names = c("I", "N"))
+
+# draw trajectory
+model.trajectory = trajectory(nfkb, y0 = c(-5, -5), tlim = c(0, 10), 
+                              parameters = pars, state.names = c("I", "N"))
+
+# Calulate the N and I over time
+model.numericalSolution = numericalSolution(nfkb, y0 = c(-5, -5), 
+                                            tlim = c(0, 20), type = "one",
+                                            parameters = pars, 
+                                            state.names = c("I", "N"),
+                                            col = c("green", "orange"), 
+                                            ylim = ylim, add.legend = F)
+# make legend for plot
+legend("topright", col = c("green", "orange"), legend = c("x", "y"), lty = 1)
+
+# Determine stability
+stab = stability(nfkb, parameters = pars, system = "two.dim",
+                 ystar=c(0, 0), state.names = c("I", "N"))
+```
+
+
+# Question 18 Negative Auto inhibition 
+
+This means that parameters b and d become negative. You get immediate oscillating instability
+
+```{r}
+pars = c(a=1, b=-1, c=1, d=-1, S=10)
+
+# for setting the axis limits
+xlim = c(-10, 10) 
+ylim = c(-50, 50)
+
+# draw vector field
+model.flowField = flowField(xlab = "I", ylab = "N", nfkb, 
+                            xlim = xlim, ylim = ylim, 
+                            parameters = pars, 
+                            points = 19, add = FALSE, 
+                            state.names = c("I", "N"))
+
+# draw nullclines
+model.nullclines = nullclines(nfkb, xlim = xlim, ylim = ylim,
+                              parameters = pars,
+                              points = 500, state.names = c("I", "N"))
+
+# draw trajectory
+model.trajectory = trajectory(nfkb, y0 = c(-5, -5), tlim = c(0, 10), 
+                              parameters = pars, state.names = c("I", "N"))
+
+# Calulate the N and I over time
+ylim = c(-1000, 1000)
+model.numericalSolution = numericalSolution(nfkb, y0 = c(-5, -5), 
+                                            tlim = c(0, 20), type = "one",
+                                            parameters = pars, 
+                                            state.names = c("I", "N"),
+                                            col = c("green", "orange"), 
+                                            ylim = ylim, add.legend = F)
+# make legend for plot
+legend("topright", col = c("green", "orange"), legend = c("x", "y"), lty = 1)
+```
