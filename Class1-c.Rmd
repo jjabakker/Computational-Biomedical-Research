@@ -1,0 +1,79 @@
+---
+title: "Class1-b"
+author: "Hans"
+date: "9/6/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("phaseR")
+```
+
+
+# Home work model - non linear
+
+Define the model 
+
+```{r model}
+model = function(timepoint, state, parameters) { 
+  with(as.list(c(state, parameters)), {
+    ds1 = V0 - k1 * s1 
+    ds2 = k1 * s1 - (V2 * s2) / (1 + s2) 
+    list(c(ds1, ds2))
+  }) 
+}
+```
+
+
+
+
+Plot flow field, null clines and one trajectory
+
+```{r run_model}
+
+
+# for setting the axis limits
+xlim = c(-10, 20) 
+ylim = c(-10, 20)
+
+
+pars = c(V0 = 1.1, k1 = 0.1, V2 = 1.5)
+
+# draw vector field
+model.flowField = flowField(xlab = "s1", ylab = "s2", model, 
+                            xlim = xlim, ylim = ylim, 
+                            parameters = pars, 
+                            points = 19, add = FALSE, 
+                            state.names = c("s1", "s2"))
+
+# draw nullclines
+model.nullclines = nullclines(model, xlim = xlim, ylim = ylim,
+                              parameters = pars,
+                              points = 500, state.names = c("s1", "s2"))
+
+# draw trajectory
+model.trajectory = trajectory(model, y0 = c(-10, 10), tlim = c(0, 40), 
+                              parameters = pars, state.names = c("s1", "s2"))
+model.trajectory = trajectory(model, y0 = c(21, 10), tlim = c(0, 40), 
+                              parameters = pars, state.names = c("s1", "s2"))
+model.trajectory = trajectory(model, y0 = c(20, -10), tlim = c(0, 40), 
+                              parameters = pars, state.names = c("s1", "s2"))
+model.trajectory = trajectory(model, y0 = c(0, 0), tlim = c(0, 40), 
+                              parameters = pars, state.names = c("s1", "s2"))
+```
+
+# Calulate the x and y over time 
+```{r}
+# perform numerical simulation and plot end result
+model.numericalSolution = numericalSolution(model, y0 = c(0, 0), 
+                                            tlim = c(0, 100), type = "one",
+                                            parameters = pars,
+                                            state.names = c("s1", "s2"),
+                                            col = c("green", "orange"), 
+                                            ylim = ylim, add.legend = F)
+# make legend for plot
+legend("topright", col = c("green", "orange"), legend = c("x", "y"), lty = 1)
+
+
+```

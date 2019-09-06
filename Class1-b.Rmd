@@ -1,0 +1,121 @@
+---
+title: "Class1-b"
+author: "Hans"
+date: "9/6/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("phaseR")
+```
+
+
+```{r model}
+simple_model = function(timepoint, state, parameters) { 
+  with(as.list(c(state, parameters)), {
+    ds1 = k1 - k3 * s1 - k5 * s1 
+    ds2 = k2 - k4 * s2 + k5 * s2 
+    list(c(ds1, ds2))
+  }) 
+}
+```
+
+
+```{r inhib_model}
+inhib_model = function(timepoint, state, parameters) { 
+  with(as.list(c(state, parameters)), {
+    ds1 = k1 / (1 + s2/K) - k3 * s1 - k5 * s1 
+    ds2 = k2 - k4 * s2 + k5 * s2 
+    list(c(ds1, ds2))
+  }) 
+}
+```
+
+
+# Define the model and plot flow field, null clines and one trajectory
+```{r run_model}
+
+model = inhib_model
+# for setting the axis limits
+xlim = c(0, 2) 
+ylim = c(0, 4)
+
+
+pars = c(k1 = 1.1, k2 = 0.1, k3 = 0.5, k4 = 0.15, k5 = 0.1, K = 0.2)
+
+# draw vector field
+model.flowField = flowField(xlab = "s1", ylab = "s2", model, 
+                            xlim = xlim, ylim = ylim, 
+                            parameters = pars, 
+                            points = 19, add = FALSE, 
+                            state.names = c("s1", "s2"))
+
+# draw nullclines
+model.nullclines = nullclines(model, xlim = xlim, ylim = ylim,
+                              parameters = pars,
+                              points = 500, state.names = c("s1", "s2"))
+
+# draw trajectory
+model.trajectory = trajectory(model, y0 = c(1, 1), tlim = c(0, 40), 
+                              parameters = pars, state.names = c("s1", "s2"))
+model.trajectory = trajectory(model, y0 = c(1, 2), tlim = c(0, 40), 
+                              parameters = pars, state.names = c("s1", "s2"))
+model.trajectory = trajectory(model, y0 = c(2, 1), tlim = c(0, 40), 
+                              parameters = pars, state.names = c("s1", "s2"))
+model.trajectory = trajectory(model, y0 = c(2, 2), tlim = c(0, 40), 
+                              parameters = pars, state.names = c("s1", "s2"))
+```
+
+# Calulate the x and y over time with varying start conditions
+```{r}
+# perform numerical simulation and plot end result
+model.numericalSolution = numericalSolution(model, y0 = c(0, 0), 
+                                            tlim = c(0, 100), type = "one",
+                                            parameters = pars,
+                                            state.names = c("s1", "s2"),
+                                            col = c("green", "orange"), 
+                                            ylim = ylim, add.legend = F)
+# make legend for plot
+legend("topright", col = c("green", "orange"), legend = c("x", "y"), lty = 1)
+
+# model.numericalSolution = numericalSolution(model, y0 = c(1, 1), 
+#                                             tlim = c(0, 20), type = "one",
+#                                             parameters = pars, 
+#                                             state.names = c("s1", "s2"),
+#                                             col = c("green", "orange"), 
+#                                             ylim = ylim, add.legend = F)
+# # make legend for plot
+# legend("topright", col = c("green", "orange"), legend = c("x", "y"), lty = 1)
+# 
+
+# model.numericalSolution = numericalSolution(model, y0 = c(1, 2), 
+#                                             tlim = c(0, 20), type = "one",
+#                                             parameters = pars, 
+#                                             state.names = c("s1", "s2"),
+#                                             col = c("green", "orange"), 
+#                                             ylim = ylim, add.legend = F)
+# # make legend for plot
+# legend("topright", col = c("green", "orange"), legend = c("x", "y"), lty = 1)
+# 
+# 
+# model.numericalSolution = numericalSolution(model, y0 = c(2, 1), 
+#                                             tlim = c(0, 20), type = "one",
+#                                             parameters = pars,
+#                                             state.names = c("s1", "s2"),
+#                                             col = c("green", "orange"), 
+#                                             ylim = ylim, add.legend = F)
+# # make legend for plot
+# legend("topright", col = c("green", "orange"), legend = c("x", "y"), lty = 1)
+# 
+# 
+# model.numericalSolution = numericalSolution(model, y0 = c(0, -5), 
+#                                             tlim = c(0, 20), type = "one",
+#                                             parameters = pars,
+#                                             state.names = c("s1", "s2"),
+#                                             col = c("green", "orange"), 
+#                                             ylim = ylim, add.legend = F)
+# # make legend for plot
+# legend("topright", col = c("green", "orange"), legend = c("x", "y"), lty = 1)
+
+```

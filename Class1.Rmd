@@ -1,0 +1,247 @@
+---
+title: "Class 1"
+author: "Hans"
+date: "9/6/2019"
+output: html_document
+---
+
+
+Single analysis
+phasePlaneAnalysis(model, xlim = xlim, ylim = ylim, parameters = pars)
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("phaseR")
+#library(matlib)
+
+```
+
+
+```{r}
+test_shape <- function (e_values, trace, det) {
+  ev1 = e_values[[1]]
+  ev2 = e_values[[2]]
+  
+  if (det <= 0) {
+    return('Saddle')
+  }
+  else if ( trace < 0 ) {   # Stable
+    if (class(ev1) == "complex") {
+      return ('Stable Spiral')
+    }
+    else {
+      return ('Stable Node')
+    }
+  }
+  else if (trace > 0) {  # Unstable
+    if (class(ev1) == "complex") {
+      return ('Unstable Spiral')
+    }
+    else {
+      return ('Unstable Node')
+    }
+  }
+  else {
+    return('Centre')
+  }
+}
+
+
+test_jacobian <- function (Jacobian) {
+
+  ev = eigen(Jacobian)
+
+  ev1 = ev$values[[1]]
+  ev2 = ev$values[[2]]
+  
+  ev1
+  ev2
+
+  
+  if (ev1 < 0 && ev2 < 0) { #stable
+    if (class(ev1) == "complex") {
+      return ('Stable Spiral')
+    }
+    else {
+      return ('Stable Node')
+    }
+  }
+  else if (ev1 > 0 && ev2 > 0) { #unstable
+    if (class(ev1) == "complex") {
+      return ('Stable Spiral')
+    }
+    else {
+      return ('Stable Node')
+    }
+  }
+  else {
+    return("Centre") 
+  }
+}
+
+
+tr <- function (Matr) {
+  return(Matr[1,1] + Matr[2,2])
+}
+
+```
+
+
+```{r snode}
+snode = function(timepoint, state, parameters) { 
+  with(as.list(c(state, parameters)), {
+    dx = -2*x - y 
+    dy = -x - 2*y 
+    list(c(dx, dy))
+  }) 
+}
+
+(snode_jacobian = matrix(c (-2, -1, -1,-2), 2, 2, byrow=TRUE))
+
+```
+
+
+```{r unode}
+unode = function(timepoint, state, parameters) { 
+  with(as.list(c(state, parameters)), {
+    dx = 2*x + y 
+    dy = x + 2*y 
+    list(c(dx, dy))
+  }) 
+}
+
+(unode_jacobian = matrix(c (2, 1, 1,2), 2, 2, byrow=TRUE))
+```
+
+
+```{r saddle}
+saddle = function(timepoint, state, parameters) { 
+  with(as.list(c(state, parameters)), {
+    dx = -x - y 
+    dy = -2*x - y 
+    list(c(dx, dy))
+  }) 
+}
+
+(saddle_jacobian = matrix(c (-1, -1, -2, -1), 2, 2, byrow=TRUE))
+```
+
+
+```{r sspiral}
+sspiral = function(timepoint, state, parameters) { 
+  with(as.list(c(state, parameters)), {
+    dx = -x + 2*y 
+    dy = -2*x - y 
+    list(c(dx, dy))
+  }) 
+}
+
+(sspiral_jacobian = matrix(c (-1, 2, -2, -1), 2, 2, byrow=TRUE))
+```
+
+
+```{r uspiral}
+uspiral = function(timepoint, state, parameters) { 
+  with(as.list(c(state, parameters)), {
+    dx = x + 2*y 
+    dy = -2*x + y 
+    list(c(dx, dy))
+  }) 
+}
+
+(uspiral_jacobian = matrix(c (1, 2, -2, 1), 2, 2, byrow=TRUE))
+```
+
+
+```{r center}
+center = function(timepoint, state, parameters) { 
+  with(as.list(c(state, parameters)), {
+    dx = x + 2*y 
+    dy = -2*x - y 
+    list(c(dx, dy))
+  }) 
+}
+(center_jacobian = matrix(c (1, 2, -2, -1), 2, 2, byrow=TRUE))
+
+```
+
+# Here start the analyis part
+
+First set the model you want to use:
+
+```{r}
+model = snode
+jac   = snode_jacobian
+
+
+```
+
+
+```{r analyse}
+
+# Show the model
+
+jac
+
+# Calculate the eigen values
+ev = eigen(jac)
+(values = ev$values)
+(vectors = ev$vectors)
+
+# Trace and Determinant 
+(trace = tr(jac))
+(det  = det(jac))
+
+test_shape(values, trace, det)
+test_jacobian(jac)
+
+# for setting the axis limits
+xlim = c(-10, 10) 
+ylim = c(-10, 10)
+
+# no parameters in the ODE, so we set pars as an empty vector
+pars = vector()
+
+# Calculate the stability at the selected equilibrium
+stab = stability(model, parameters = pars, system = "two.dim",
+                 ystar=c(0, 0), state.names = c("x", "y"))
+ 
+# draw vector field
+model_flowField = flowField(xlab = "x", ylab = "y", model, 
+                            xlim = xlim, ylim = ylim, 
+                            parameters = pars, 
+                            points = 19, add = FALSE, 
+                            state.names = c("x", "y"))
+  
+# draw nullclines
+model_nullclines = nullclines(model, xlim = xlim, ylim = ylim,
+                              parameters = pars,
+                              points = 500, state.names = c("x", "y"))
+  
+
+  
+model_trajectory = trajectory(model, y0 = c(-5, -5), 
+                                tlim = c(0, 10), 
+                                parameters = pars, state.names = c("x", "y"))
+model_trajectory = trajectory(model, y0 = c(-5, 5), 
+                                tlim = c(0, 10), 
+                                parameters = pars, state.names = c("x", "y"))
+model_trajectory = trajectory(model, y0 = c(5, -5), 
+                                tlim = c(0, 10), 
+                                parameters = pars, state.names = c("x", "y"))
+model_trajectory = trajectory(model, y0 = c(5, 5), 
+                                tlim = c(0, 10), 
+                                parameters = pars, state.names = c("x", "y"))
+model_trajectory = trajectory(model, y0 = c(5, 0), 
+                                tlim = c(0, 10), 
+                                parameters = pars, state.names = c("x", "y"))
+model_trajectory = trajectory(model, y0 = c(-5, 0), 
+                                tlim = c(0, 10), 
+                                parameters = pars, state.names = c("x", "y"))
+  
+
+```
+
+
+
+
