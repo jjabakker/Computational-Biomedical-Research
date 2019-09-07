@@ -1,5 +1,5 @@
 ---
-title: "Class1-b"
+title: "Class1b - The model of the ODE with and without inhibition"
 author: "Hans"
 date: "9/6/2019"
 output: html_document
@@ -11,6 +11,7 @@ library("phaseR")
 ```
 
 
+# Two modls are defined
 ```{r model}
 simple_model = function(timepoint, state, parameters) { 
   with(as.list(c(state, parameters)), {
@@ -33,10 +34,14 @@ inhib_model = function(timepoint, state, parameters) {
 ```
 
 
-# Define the model and plot flow field, null clines and one trajectory
+# Analysis
+
+Select the model and plot flow field, null clines and one trajectory
+
 ```{r run_model}
 
-model = inhib_model
+model = simple_model
+
 # for setting the axis limits
 xlim = c(0, 2) 
 ylim = c(0, 4)

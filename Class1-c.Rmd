@@ -1,5 +1,5 @@
 ---
-title: "Class1-b"
+title: "Class1b - The homework assignment"
 author: "Hans"
 date: "9/6/2019"
 output: html_document
@@ -28,6 +28,7 @@ model = function(timepoint, state, parameters) {
 
 
 
+#Analysis
 Plot flow field, null clines and one trajectory
 
 ```{r run_model}
