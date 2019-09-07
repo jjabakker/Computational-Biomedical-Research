@@ -9,6 +9,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+Single analysis
+phasePlaneAnalysis(model, xlim = xlim, ylim = ylim, parameters = pars)
 
 # Define the model and plot flow field, null clines and one trajectory
 ```{r define_model}
