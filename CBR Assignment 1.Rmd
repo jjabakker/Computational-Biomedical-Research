@@ -7,6 +7,8 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library("phaseR")
+library(tidyverse)
 ```
 
 Single analysis
@@ -14,9 +16,7 @@ phasePlaneAnalysis(model, xlim = xlim, ylim = ylim, parameters = pars)
 
 # Define the model and plot flow field, null clines and one trajectory
 ```{r define_model}
-library("phaseR")
 
-# define 2D ODE model
 
 model = function(timepoint, state, parameters) { 
   with(as.list(c(state, parameters)), {
@@ -57,31 +57,37 @@ model.trajectory = trajectory(model, y0 = c(5, -10), tlim = c(0, 10),
 
 # Calulate the x and y over time with varying start conditions
 ```{r}
-# perform numerical simulation and plot end result
+
+# Perform numerical simulation and plot end result
+# The function numericalSolution
+
 model.numericalSolution = numericalSolution(model, y0 = c(-5, -5), 
-                                            tlim = c(0, 20), type = "one",
+                                            tlim = c(0, 20), 
+                                            type = "one",
                                             parameters = pars, 
                                             col = c("green", "orange"), 
-                                            ylim = ylim, add.legend = F)
-# make legend for plot
+                                            ylim = ylim, 
+                                            add.legend = F)
 legend("topright", col = c("green", "orange"), legend = c("x", "y"), lty = 1)
 eq = locator(n = 1)
 
 model.numericalSolution = numericalSolution(model, y0 = c(5, 10), 
-                                            tlim = c(0, 20), type = "one",
+                                            tlim = c(0, 20), 
+                                            type = "one",
                                             parameters = pars, 
                                             col = c("green", "orange"), 
-                                            ylim = ylim, add.legend = F)
-# make legend for plot
+                                            ylim = ylim, 
+                                            add.legend = F)
 legend("topright", col = c("green", "orange"), legend = c("x", "y"), lty = 1)
 
 
 model.numericalSolution = numericalSolution(model, y0 = c(-5, 5), 
-                                            tlim = c(0, 20), type = "one",
+                                            tlim = c(0, 20), 
+                                            type = "one",
                                             parameters = pars, 
                                             col = c("green", "orange"), 
-                                            ylim = ylim, add.legend = F)
-# make legend for plot
+                                            ylim = ylim, 
+                                            add.legend = F)
 legend("topright", col = c("green", "orange"), legend = c("x", "y"), lty = 1)
 
 
@@ -89,8 +95,8 @@ model.numericalSolution = numericalSolution(model, y0 = c(0, 5),
                                             tlim = c(0, 20), type = "one",
                                             parameters = pars, 
                                             col = c("green", "orange"), 
-                                            ylim = ylim, add.legend = F)
-# make legend for plot
+                                            ylim = ylim, 
+                                            add.legend = F)
 legend("topright", col = c("green", "orange"), legend = c("x", "y"), lty = 1)
 
 
@@ -98,8 +104,8 @@ model.numericalSolution = numericalSolution(model, y0 = c(0, -5),
                                             tlim = c(0, 20), type = "one",
                                             parameters = pars, 
                                             col = c("green", "orange"), 
-                                            ylim = ylim, add.legend = F)
-# make legend for plot
+                                            ylim = ylim, 
+                                            add.legend = F)
 legend("topright", col = c("green", "orange"), legend = c("x", "y"), lty = 1)
 
 ```
@@ -110,6 +116,8 @@ legend("topright", col = c("green", "orange"), legend = c("x", "y"), lty = 1)
 # Question 1: Calculate the stability at the selected equilibrium
 ```{r}
 
+# ystar is on indication of where the equilibrium is
+# function cab be used both for one and two equations 
 stab = stability(model, parameters = pars, system = "two.dim",
                  ystar=c(0, 0), state.names = c("x", "y"))
 ```
@@ -149,7 +157,6 @@ model6 = function(timepoint, state, parameters) {
   }) 
 }
 
-
 model7 = function(timepoint, state, parameters) { 
   with(as.list(c(state, parameters)), {
     dx = x + 3*y 
@@ -179,11 +186,12 @@ pars = vector()
 for (mod in c(model4, model5, model6, model7, model8)) {
   
   # draw vector field
-  model.flowField = flowField(xlab = "x", ylab = "y", mod, 
+  model.flowField = flowField(mod,
                               xlim = xlim, ylim = ylim, 
                               parameters = pars, 
+                              state.names = c("x", "y"),
                               points = 19, add = FALSE, 
-                              state.names = c("x", "y"))
+                              xlab = "x", ylab = "y")
 
   # draw nullclines
   model.nullclines = nullclines(mod, xlim = xlim, ylim = ylim,
@@ -196,6 +204,7 @@ for (mod in c(model4, model5, model6, model7, model8)) {
   #                                tlim = c(0, 10), 
   #                                parameters = pars, state.names = c("x", "y"))
   #}
+  
   
   model.trajectory = trajectory(mod, y0 = c(-5, -5), 
                                 tlim = c(0, 10), 
@@ -228,24 +237,28 @@ for (mod in c(model4, model5, model6, model7, model8)) {
 ```{r}
 nfkb = function(timepoint, state, parameters) { 
   with(as.list(c(state, parameters)), {
-    dI = -S + a*N - b*I 
-    dN = -c*I - d*N 
+    dI = -S + a * N - b * I 
+    dN = -c * I - d * N 
     list(c(dI, dN))
   }) 
 }
 
-pars = c(a=1, b=1, c=1, d=1, S=0)
+pars = c(a = 3, b = 1, c = 2, d = 1, S = 0)
 
 # for setting the axis limits
 xlim = c(-10, 10) 
-ylim = c(-10, 10)
+ylim = c(-15, 15)
+
+inival = c(10, 10)
+time_int = c(0, 20)
 
 # draw vector field
-model.flowField = flowField(xlab = "I", ylab = "N", nfkb, 
+model.flowField = flowField(nfkb, 
                             xlim = xlim, ylim = ylim, 
                             parameters = pars, 
+                            state.names = c("I", "N"),
                             points = 19, add = FALSE, 
-                            state.names = c("I", "N"))
+                            xlab = "I", ylab = "N",)
 
 # draw nullclines
 model.nullclines = nullclines(nfkb, xlim = xlim, ylim = ylim,
@@ -257,18 +270,20 @@ model.trajectory = trajectory(nfkb, y0 = c(-5, -5), tlim = c(0, 10),
                               parameters = pars, state.names = c("I", "N"))
 
 # Calulate the N and I over time
-model.numericalSolution = numericalSolution(nfkb, y0 = c(-5, -5), 
-                                            tlim = c(0, 20), type = "one",
+model.numericalSolution = numericalSolution(nfkb, 
+                                            y0 = inival, 
+                                            tlim = time_int, 
+                                            type = "one",
                                             parameters = pars, 
                                             state.names = c("I", "N"),
                                             col = c("green", "orange"), 
-                                            ylim = ylim, add.legend = F)
-# make legend for plot
+                                            ylim = ylim, 
+                                            add.legend = F)
 legend("topright", col = c("green", "orange"), legend = c("x", "y"), lty = 1)
 
 # Determine stability
 stab = stability(nfkb, parameters = pars, system = "two.dim",
-                 ystar=c(0, 0), state.names = c("I", "N"))
+                 ystar = c(0, 0), state.names = c("I", "N"))
 
 ```
 
@@ -283,41 +298,61 @@ nfkb = function(timepoint, state, parameters) {
   }) 
 }
 
-pars = c(a=1, b=1, c=1, d=1, S=10)
+pars = c(a = 3, b = 1, c = 2, d = 1, S = 5)
+inival = c(-5, -5)
+time_int = c(0, 20)
 
 # for setting the axis limits
 xlim = c(-10, 10) 
-ylim = c(-10, 10)
+ylim = c(-5, 5)
 
 # draw vector field
-model.flowField = flowField(xlab = "I", ylab = "N", nfkb, 
+model.flowField = flowField(nfkb, 
                             xlim = xlim, ylim = ylim, 
-                            parameters = pars, 
-                            points = 19, add = FALSE, 
-                            state.names = c("I", "N"))
+                            parameters = pars,
+                            state.names = c("I", "N"),
+                            points = 19, 
+                            add = FALSE, 
+                            xlab = "I", 
+                            ylab = "N", )
 
 # draw nullclines
-model.nullclines = nullclines(nfkb, xlim = xlim, ylim = ylim,
+model.nullclines = nullclines(nfkb, 
+                              xlim = xlim, ylim = ylim,
                               parameters = pars,
-                              points = 500, state.names = c("I", "N"))
+                              points = 500, 
+                              state.names = c("I", "N"))
 
 # draw trajectory
-model.trajectory = trajectory(nfkb, y0 = c(-5, -5), tlim = c(0, 10), 
-                              parameters = pars, state.names = c("I", "N"))
+
+model.trajectory = trajectory(nfkb, 
+                              y0 = inival, 
+                              tlim = time_int, 
+                              parameters = pars, 
+                              state.names = c("I", "N"))
 
 # Calulate the N and I over time
-model.numericalSolution = numericalSolution(nfkb, y0 = c(-5, -5), 
-                                            tlim = c(0, 20), type = "one",
+inival = c(0, 0)
+model.numericalSolution = numericalSolution(nfkb, y0 = inival, 
+                                            tlim = time_int, 
+                                            type = "one",
                                             parameters = pars, 
                                             state.names = c("I", "N"),
                                             col = c("green", "orange"), 
-                                            ylim = ylim, add.legend = F)
-# make legend for plot
+                                            ylim = ylim, 
+                                            add.legend = F)
 legend("topright", col = c("green", "orange"), legend = c("x", "y"), lty = 1)
 
+# Plot x against y - why does this not work well?
+# ggplot() +
+#  geom_line(mapping = aes(x = model.numericalSolution$x, y = model.numericalSolution$y))
+
 # Determine stability
-stab = stability(nfkb, parameters = pars, system = "two.dim",
-                 ystar=c(0, 0), state.names = c("I", "N"))
+stab = stability(nfkb, 
+                 parameters = pars, 
+                 system = "two.dim",
+                 ystar=c(0, 0), 
+                 state.names = c("I", "N"))
 
 ```
 
@@ -326,41 +361,50 @@ stab = stability(nfkb, parameters = pars, system = "two.dim",
 Not clear how to model this best
 
 ```{r}
-pars = c(a=3, b=1, c=2, d=1, S=0)
+pars = c(a = 3, b = 0.1, c = 2, d = 0.1, S = 0)
 
 # for setting the axis limits
 xlim = c(-10, 10) 
-ylim = c(-40, 40)
+ylim = c(-10, 10)
 
 # draw vector field
-model.flowField = flowField(xlab = "I", ylab = "N", nfkb, 
+model.flowField = flowField(nfkb, 
                             xlim = xlim, ylim = ylim, 
                             parameters = pars, 
+                            state.names = c("I", "N"),
                             points = 19, add = FALSE, 
-                            state.names = c("I", "N"))
+                            xlab = "I", ylab = "N")
 
 # draw nullclines
-model.nullclines = nullclines(nfkb, xlim = xlim, ylim = ylim,
+model.nullclines = nullclines(nfkb, 
+                              xlim = xlim, ylim = ylim,
                               parameters = pars,
                               points = 500, state.names = c("I", "N"))
 
 # draw trajectory
-model.trajectory = trajectory(nfkb, y0 = c(-5, -5), tlim = c(0, 10), 
-                              parameters = pars, state.names = c("I", "N"))
+model.trajectory = trajectory(nfkb, 
+                              y0 = c(-5, -5), 
+                              tlim = c(0, 10), 
+                              parameters = pars, 
+                              state.names = c("I", "N"))
 
 # Calulate the N and I over time
 model.numericalSolution = numericalSolution(nfkb, y0 = c(-5, -5), 
-                                            tlim = c(0, 20), type = "one",
+                                            tlim = c(0, 20), 
+                                            type = "one",
                                             parameters = pars, 
                                             state.names = c("I", "N"),
                                             col = c("green", "orange"), 
-                                            ylim = ylim, add.legend = F)
-# make legend for plot
+                                            ylim = ylim, 
+                                            add.legend = F)
 legend("topright", col = c("green", "orange"), legend = c("x", "y"), lty = 1)
 
 # Determine stability
-stab = stability(nfkb, parameters = pars, system = "two.dim",
-                 ystar=c(0, 0), state.names = c("I", "N"))
+stab = stability(nfkb, 
+                 parameters = pars, 
+                 system = "two.dim",
+                 ystar=c(0, 0), 
+                 state.names = c("I", "N"))
 ```
 
 
@@ -369,41 +413,55 @@ stab = stability(nfkb, parameters = pars, system = "two.dim",
 This means that parameters b and d become 0
 
 ```{r}
-pars = c(a=1, b=0, c=1, d=0, S=10)
+pars = c(a = 3, b = 0, c = 2, d = 0, S = 5)
 
 # for setting the axis limits
 xlim = c(-10, 10) 
-ylim = c(-40, 40)
+ylim = c(-10, 10)
 
 # draw vector field
-model.flowField = flowField(xlab = "I", ylab = "N", nfkb, 
+model.flowField = flowField(nfkb, 
                             xlim = xlim, ylim = ylim, 
                             parameters = pars, 
+                            state.names = c("I", "N"),
                             points = 19, add = FALSE, 
-                            state.names = c("I", "N"))
+                            xlab = "I", ylab = "N")
 
 # draw nullclines
-model.nullclines = nullclines(nfkb, xlim = xlim, ylim = ylim,
+model.nullclines = nullclines(nfkb, 
+                              xlim = xlim, ylim = ylim,
                               parameters = pars,
                               points = 500, state.names = c("I", "N"))
 
 # draw trajectory
-model.trajectory = trajectory(nfkb, y0 = c(-5, -5), tlim = c(0, 10), 
-                              parameters = pars, state.names = c("I", "N"))
+model.trajectory = trajectory(nfkb, 
+                              y0 = c(-5, -5), 
+                              tlim = c(0, 100), 
+                              parameters = pars, 
+                              state.names = c("I", "N"))
+model.trajectory = trajectory(nfkb, 
+                              y0 = c(-2, -2), 
+                              tlim = c(0, 100), 
+                              parameters = pars, 
+                              state.names = c("I", "N"))
 
 # Calulate the N and I over time
 model.numericalSolution = numericalSolution(nfkb, y0 = c(-5, -5), 
-                                            tlim = c(0, 20), type = "one",
+                                            tlim = c(0, 20), 
+                                            type = "one",
                                             parameters = pars, 
                                             state.names = c("I", "N"),
                                             col = c("green", "orange"), 
-                                            ylim = ylim, add.legend = F)
-# make legend for plot
+                                            ylim = ylim, 
+                                            add.legend = F)
 legend("topright", col = c("green", "orange"), legend = c("x", "y"), lty = 1)
 
 # Determine stability
-stab = stability(nfkb, parameters = pars, system = "two.dim",
-                 ystar=c(0, 0), state.names = c("I", "N"))
+stab = stability(nfkb, 
+                 parameters = pars, 
+                 system = "two.dim",
+                 ystar=c(0, 0), 
+                 state.names = c("I", "N"))
 ```
 
 
@@ -412,36 +470,43 @@ stab = stability(nfkb, parameters = pars, system = "two.dim",
 This means that parameters b and d become negative. You get immediate oscillating instability
 
 ```{r}
-pars = c(a=1, b=-1, c=1, d=-1, S=10)
+pars = c(a = 3, b = -1, c = 2, d = -1, S = 5)
 
 # for setting the axis limits
 xlim = c(-10, 10) 
-ylim = c(-50, 50)
+ylim = c(-10, 10)
 
 # draw vector field
-model.flowField = flowField(xlab = "I", ylab = "N", nfkb, 
+model.flowField = flowField(nfkb, 
                             xlim = xlim, ylim = ylim, 
                             parameters = pars, 
-                            points = 19, add = FALSE, 
-                            state.names = c("I", "N"))
+                            points = 19, 
+                            add = FALSE, 
+                            state.names = c("I", "N"), xlab = "I", ylab = "N")
 
 # draw nullclines
-model.nullclines = nullclines(nfkb, xlim = xlim, ylim = ylim,
+model.nullclines = nullclines(nfkb, 
+                              xlim = xlim, ylim = ylim,
                               parameters = pars,
-                              points = 500, state.names = c("I", "N"))
+                              points = 500, 
+                              state.names = c("I", "N"))
 
 # draw trajectory
-model.trajectory = trajectory(nfkb, y0 = c(-5, -5), tlim = c(0, 10), 
-                              parameters = pars, state.names = c("I", "N"))
+model.trajectory = trajectory(nfkb, 
+                              y0 = c(0, 0), 
+                              tlim = c(0, 10), 
+                              parameters = pars, 
+                              state.names = c("I", "N"))
 
 # Calulate the N and I over time
 ylim = c(-1000, 1000)
-model.numericalSolution = numericalSolution(nfkb, y0 = c(-5, -5), 
-                                            tlim = c(0, 20), type = "one",
+model.numericalSolution = numericalSolution(nfkb, 
+                                            y0 = c(-5, -5), 
+                                            tlim = c(0, 20), 
+                                            type = "one",
                                             parameters = pars, 
                                             state.names = c("I", "N"),
                                             col = c("green", "orange"), 
                                             ylim = ylim, add.legend = F)
-# make legend for plot
 legend("topright", col = c("green", "orange"), legend = c("x", "y"), lty = 1)
 ```

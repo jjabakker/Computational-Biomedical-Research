@@ -1,0 +1,147 @@
+---
+title: "Assignment 2"
+author: "Hans"
+date: "9/12/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(pacman)
+p_load(tidyverse)
+p_load(nycflights13)
+p_load(ggplot2)
+p_load(Deriv)
+p_load(deSolve)
+p_load(phaseR)
+theme_set(theme_minimal())
+```
+
+
+# Define the model and plot flow field, null clines and one trajectory
+```{r define_model}
+
+
+model = function(timepoint, state, parameters) { 
+  with(as.list(c(state, parameters)), {
+    dS1 = k0 - k1 * S1 * (1 + (S2/K)^n) 
+    dS2 = k1 * S1 * (1 + (S2/K)^n)  - k2 * S2 
+    list(c(dS1, dS2))
+  }) 
+}
+
+# for setting the axis limits
+xlim = c(-10, 20) 
+ylim = c(-5, 5)
+
+
+pars = c(k0 = 0.1, k1 = 0.1, k2 = 0.1, K = 3, n = 3)
+
+#draw vector field
+model.flowField = flowField(xlab = "x", ylab = "y", model,
+                            xlim = xlim, ylim = ylim,
+                            parameters = pars,
+                            points = 19, add = FALSE,
+                            state.names = c("S1", "S2"))
+
+# draw nullclines
+model.nullclines = nullclines(model, xlim = xlim, ylim = ylim,
+                              parameters = pars,
+                              points = 500, 
+                              state.names = c("S1", "S2"))
+
+# draw trajectory
+# model.trajectory = trajectory(model, 
+#                               y0 = c(0.5, 4), 
+#                               tlim = c(0, 10), 
+#                               parameters = pars, 
+#                               state.names = c("S1", "S2"))
+# model.trajectory = trajectory(model, 
+#                               y0 = c(0, -10), 
+#                               tlim = c(0, 10), 
+#                               parameters = pars, 
+#                               state.names = c("S1", "S2"))
+# model.trajectory = trajectory(model, y0 = c(1.5, 3), 
+#                               tlim = c(0, 10), 
+#                               parameters = pars, 
+#                               state.names = c("S1", "S2"))
+# model.trajectory = trajectory(model, y0 = c(5, -10), 
+#                               tlim = c(0, 10), 
+#                               parameters = pars, 
+#                               state.names = c("S1", "S2"))
+```
+
+
+```{r}
+
+# Perform numerical simulation and plot end result
+# The function numericalSolution
+
+model.numericalSolution = numericalSolution(model, y0 = c(-5, -5), 
+                                            tlim = c(0, 20), 
+                                            type = "one",
+                                            parameters = pars, 
+                                            state.names = c('S1', 'S2'),
+                                            col = c("green", "orange"), 
+                                            ylim = ylim, 
+                                            add.legend = F)
+legend("topright", col = c("green", "orange"), legend = c("x", "y"), lty = 1)
+eq = locator(n = 1)
+
+model.numericalSolution = numericalSolution(model, y0 = c(5, 10), 
+                                            tlim = c(0, 20), 
+                                            type = "one",
+                                            parameters = pars,
+                                            state.names = c('S1', 'S2'),
+                                            col = c("green", "orange"), 
+                                            ylim = ylim, 
+                                            add.legend = F)
+legend("topright", col = c("green", "orange"), legend = c("x", "y"), lty = 1)
+
+
+model.numericalSolution = numericalSolution(model, y0 = c(-5, 5), 
+                                            tlim = c(0, 20), 
+                                            type = "one",
+                                            parameters = pars, 
+                                            state.names = c('S1', 'S2'),
+                                            col = c("green", "orange"), 
+                                            ylim = ylim, 
+                                            add.legend = F)
+legend("topright", col = c("green", "orange"), legend = c("x", "y"), lty = 1)
+
+
+model.numericalSolution = numericalSolution(model, y0 = c(0, 5), 
+                                            tlim = c(0, 20), type = "one",
+                                            parameters = pars,
+                                            state.names = c('S1', 'S2'),
+                                            col = c("green", "orange"), 
+                                            ylim = ylim, 
+                                            add.legend = F)
+legend("topright", col = c("green", "orange"), legend = c("x", "y"), lty = 1)
+
+
+model.numericalSolution = numericalSolution(model, y0 = c(0, -5), 
+                                            tlim = c(0, 20), type = "one",
+                                            parameters = pars,
+                                            state.names = c('S1', 'S2'),
+                                            col = c("green", "orange"), 
+                                            ylim = ylim, 
+                                            add.legend = F)
+legend("topright", col = c("green", "orange"), legend = c("x", "y"), lty = 1)
+
+```
+
+
+# Michaelis Menten
+
+```{r}
+
+
+model = function(timepoint, state, parameters) { 
+  with(as.list(c(state, parameters)), {
+    dC = kf * (E0 - C) * S -  (kcat + kf) * C
+                                
+    dP  = k1 * S1 * (1 + (S2/K)^n)  - k2 * S2 
+    list(c(dS1, dS2))
+  }) 
+}

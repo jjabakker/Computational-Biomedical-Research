@@ -1,0 +1,148 @@
+---
+title: "Class1b - The homework assignment"
+author: "Hans"
+date: "9/6/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("phaseR")
+```
+
+
+```{r}
+source('~/Documents/R_Projects/Computational Biomedical Research/ode_utilities.R')
+```
+
+# Home work model - non linear
+
+Define the model 
+
+```{r model}
+model = function(timepoint, state, parameters) { 
+  with(as.list(c(state, parameters)), {
+    ds1 = V0 - k1 * s1 
+    ds2 = k1 * s1 - (V2 * s2) / (1 + s2) 
+    list(c(ds1, ds2))
+  }) 
+}
+```
+
+
+The Jacobian is
+
+-k1       0
+k1       -v/(1+s2^2)
+
+# Analysis
+Plot flow field, null clines and one trajectory
+
+```{r run_model}
+
+
+# for setting the axis limits
+xlim = c(-50, 50) 
+ylim = c(-10, 50)
+pars = c(V0 = 1.1, k1 = 0.2, V2 = 1.5)
+
+# draw vector field
+model_flowField = flowField(model, 
+                            xlim = xlim, ylim = ylim, 
+                            parameters = pars, 
+                            points = 19, 
+                            add = FALSE, 
+                            state.names = c("s1", "s2"),
+                            xlab = "s1", ylab = "s2")
+
+# draw nullclines
+model_nullclines = nullclines(model, 
+                              xlim = xlim, ylim = ylim,
+                              parameters = pars,
+                              points = 500, 
+                              state.names = c("s1", "s2"))
+
+# draw trajectory
+model_trajectory = trajectory(model, 
+                              y0 = c(-10, 10), 
+                              tlim = c(0, 40), 
+                              parameters = pars, 
+                              state.names = c("s1", "s2"))
+model_trajectory = trajectory(model, 
+                              y0 = c(30, 10), 
+                              tlim = c(0, 40), 
+                              parameters = pars, 
+                              state.names = c("s1", "s2"))
+model_trajectory = trajectory(model, 
+                              y0 = c(30, 5), 
+                              tlim = c(0, 40), 
+                              parameters = pars, 
+                              state.names = c("s1", "s2"))
+model_trajectory = trajectory(model, 
+                              y0 = c(30, 1), 
+                              tlim = c(0, 40), 
+                              parameters = pars, 
+                              state.names = c("s1", "s2"))
+model_trajectory = trajectory(model, y0 = c(10, 1), 
+                              tlim = c(0, 40), 
+                              parameters = pars, 
+                              state.names = c("s1", "s2"))
+model_trajectory = trajectory(model, 
+                              y0 = c(50, 1), 
+                              tlim = c(0, 40), 
+                              parameters = pars, 
+                              state.names = c("s1", "s2"))
+model_trajectory = trajectory(model, 
+                              y0 = c(30, 1), 
+                              tlim = c(0, 40), 
+                              parameters = pars, 
+                              state.names = c("s1", "s2"))
+model_trajectory = trajectory(model, 
+                              y0 = c(10, 1), 
+                              tlim = c(0, 40), 
+                              parameters = pars, 
+                              state.names = c("s1", "s2"))
+model_trajectory = trajectory(model, 
+                              y0 = c(50, 20), 
+                              tlim = c(0, 40), 
+                              parameters = pars, 
+                              state.names = c("s1", "s2"))
+```
+
+# Calulate the x and y over time 
+```{r}
+# perform numerical simulation and plot end result
+model_numericalSolution = numericalSolution(model, 
+                                            y0 = c(0, 0), 
+                                            tlim = c(0, 100), 
+                                            type = "one",
+                                            parameters = pars,
+                                            state.names = c("s1", "s2"),
+                                            col = c("green", "orange"), 
+                                            ylim = ylim, 
+                                            add.legend = F)
+legend("topright", col = c("green", "orange"), legend = c("x", "y"), lty = 1)
+
+
+```
+
+```{r Jacobian}
+n = nrow(model_numericalSolution$y)
+s2 = model_numericalSolution$y[9999]
+(jacobian = matrix(c (-pars['k1'], 0, pars['k1'], -pars['V2']/(1+s2)^2), 2, 2, byrow=TRUE))
+test_stability_jacobian(jacobian)
+```
+
+
+```{r}
+
+# Calculate the eigen values
+ev = eigen(jacobian)
+(values = ev$values)
+(vectors = ev$vectors)
+
+# Trace and Determinant 
+(trace = tr(jacobian))
+(det  = det(jacobian))
+```
+

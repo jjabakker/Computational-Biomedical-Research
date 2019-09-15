@@ -104,8 +104,8 @@ center <- function(timepoint, state, parameters) {
 You need to select here one of the models you want to use:
 
 ```{r}
-model <- center
-jac   <- center_jacobian
+model <- saddle
+jac   <- saddle_jacobian
 
 
 ```
