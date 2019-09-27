@@ -20,7 +20,7 @@ source('~/Documents/R_Projects/Computational Biomedical Research/ode_utilities.R
 Define the model 
 
 ```{r model}
-model = function(timepoint, state, parameters) { 
+autocat_model = function(timepoint, state, parameters) { 
   with(as.list(c(state, parameters)), {
     ds1 = V0 - k1 * s1 
     ds2 = k1 * s1 - (V2 * s2) / (1 + s2) 
@@ -131,6 +131,7 @@ n = nrow(model_numericalSolution$y)
 s2 = model_numericalSolution$y[9999]
 (jacobian = matrix(c (-pars['k1'], 0, pars['k1'], -pars['V2']/(1+s2)^2), 2, 2, byrow=TRUE))
 test_stability_jacobian(jacobian)
+
 ```
 
 
@@ -144,5 +145,7 @@ ev = eigen(jacobian)
 # Trace and Determinant 
 (trace = tr(jacobian))
 (det  = det(jacobian))
+test_stability1(trace, det)
+
 ```
 

@@ -1,0 +1,418 @@
+---
+title: "CBR Assignment 4"
+author: "Hans"
+date: "9/26/2019"
+output: html_document
+---
+
+# Setup - always run
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(pacman)
+p_load(tidyverse)
+p_load(nycflights13)
+p_load(ggplot2)
+p_load(Deriv)
+p_load(deSolve)
+p_load(phaseR)
+p_load(gridExtra)
+p_load(BoolNet)
+theme_set(theme_minimal())
+```
+
+
+# Question 1: 
+
+Install and load the BoolNet package and read in the toy model from the file using the function loadNetwork. Store it in a variable called toy and view its contents.
+
+```{r Question 1}
+library(BoolNet)
+toy <- loadNetwork("toy_model.txt")
+plotNetworkWiring(toy)
+state = rep (0,3)
+state = generateState(toy, c(A = 1, B = 1))
+stateTransition(toy, state, "synchronous")
+```
+
+# Question 2: 
+
+What is the next state for the 0 0 0 state in the synchronous case? Check this by studying
+the transition rules and/or the network.
+
+```{r}
+state = generateState(toy, c(A = 0, B = 0, C = 0))
+state
+stateTransition(toy, state, "synchronous")
+
+```
+
+
+# Question 3: 
+
+What is/are the next state(s) for the 0 0 0 state in the asynchronous case? Hint: just try a few times or use the chosenGene option, see ?stateTransition for more info. Explain why you find these results.
+
+```{r}
+
+# Specify which gene you want to calculate
+state = generateState(toy, c(A = 0, B = 0, C = 0))
+stateTransition(toy, state, "asynchronous", chosenGene = 'A')
+
+state = generateState(toy, c(A = 0, B = 0, C = 0))
+stateTransition(toy, state, "asynchronous", chosenGene = 'B')
+
+state = generateState(toy, c(A = 0, B = 0, C = 0))
+stateTransition(toy, state, "asynchronous", chosenGene = 'C')
+
+# More elegantly with an lapply
+
+lapply(toy$genes, 
+       function(gene) {
+         stateTransition(toy, state, "asynchronous", chosenGene = gene) 
+       }
+      )
+
+# Or let the system choose
+state = generateState(toy, c(A = 0, B = 0, C = 0))
+stateTransition(toy, state, "asynchronous")
+
+state = generateState(toy, c(A = 0, B = 0, C = 0))
+stateTransition(toy, state, "asynchronous")
+
+state = generateState(toy, c(A = 0, B = 0, C = 0))
+stateTransition(toy, state, "asynchronous")
+
+```
+
+# Question 4
+
+To make longer simulations we just need to do multiple steps, which can be done by hand, but this becomes very tedious. Therefore, we’ll use a for loop to automate this process. Do 10 synchronous stateTransitions in a loop and print the values.
+
+```{r Question 4a}
+
+state = generateState(toy, c(A = 0, B = 0, C = 0))
+for (i in seq(10)) {
+  state = stateTransition(toy, state, "synchronous")
+  print(state)
+}
+
+```
+
+
+```{r Question 4b}
+getTimeSeries = function(network, init.state, iter, ...) {
+  path = matrix(NA, 
+                nrow = iter + 1, 
+                ncol = length(network$genes)) 
+  colnames(path) = network$genes
+  path[1, ] = init.state
+  for (i in 1:iter) {
+    path[1 + i, ] = stateTransition(network, path[i, ], ...) 
+  }
+  as.data.frame(path) }
+
+init.state = generateState(toy, c(A = 0, B = 0, C = 0))
+getTimeSeries(toy, init.state, 10, 'synchronous')
+plotSequence(sequence = path)
+
+```
+# Question 5: 
+
+Plot some time series for various initial states, what states do we end up in? Is there a difference between synchronous and asynchronous?
+
+```{r Question 5a}
+
+# Analysis of synchronous. 
+# Many end up in the same patterm, but not all
+# One exception: A = 1, B = 0, C = 0
+# Another: A = 0, B = 1, C = 1)
+
+init.state = generateState(toy, c(A = 0, B = 0, C = 0))
+path = getTimeSeries(toy, init.state, 10, 'synchronous')
+plotSequence(sequence = path)
+
+init.state = generateState(toy, c(A = 1, B = 0, C = 0))
+path = getTimeSeries(toy, init.state, 10, 'synchronous')
+plotSequence(sequence = path)
+
+init.state = generateState(toy, c(A = 0, B = 1, C = 0))
+path = getTimeSeries(toy, init.state, 10, 'synchronous')
+plotSequence(sequence = path)
+
+init.state = generateState(toy, c(A = 1, B = 1, C = 1))
+path = getTimeSeries(toy, init.state, 10, 'synchronous')
+plotSequence(sequence = path)
+
+init.state = generateState(toy, c(A = 0, B = 1, C = 1))
+path = getTimeSeries(toy, init.state, 10, 'synchronous')
+plotSequence(sequence = path)
+```
+
+
+```{r Question 5b}
+# Now asynchronous
+
+# For asynchronous there are also patterns developing, but the variety is greater?
+
+init.state = generateState(toy, c(A = 0, B = 0, C = 0))
+path = getTimeSeries(toy, init.state, 10, 'asynchronous')
+plotSequence(sequence = path)
+
+init.state = generateState(toy, c(A = 1, B = 0, C = 0))
+path = getTimeSeries(toy, init.state, 10, 'asynchronous')
+plotSequence(sequence = path)
+
+init.state = generateState(toy, c(A = 0, B = 1, C = 0))
+path = getTimeSeries(toy, init.state, 10, 'asynchronous')
+plotSequence(sequence = path)
+
+init.state = generateState(toy, c(A = 1, B = 1, C = 1))
+path = getTimeSeries(toy, init.state, 10, 'asynchronous')
+plotSequence(sequence = path)
+
+init.state = generateState(toy, c(A = 0, B = 1, C = 1))
+path = getTimeSeries(toy, init.state, 10, 'asynchronous')
+plotSequence(sequence = path)
+
+
+```
+
+# Question 6
+
+```{r}
+
+# The getPathToAttractor seems to be available only for synchronous transitions
+path = getPathToAttractor(toy, init.state)
+plotSequence(sequence = path)
+
+# The getAttractors call for synchronous transitions
+attractors <- getAttractors(toy, type = 'synchronous')
+print(attractors)
+plotAttractors(attractors)
+
+# The getAttractors call for asynchronous transitions
+attractors <- getAttractors(toy, type = 'asynchronous')
+print(attractors)
+plotAttractors(attractors)
+
+
+```
+
+# Question 7
+
+```{r}
+plotStateGraph(getAttractors(toy), vertex.size = 10, drawLabels = T)
+```
+
+# Question 8
+Unfortunately for asynchronous networks Boolnet cannot automatically draw transition graphs. Create the state transition graph for the asynchronous method using pen and paper. Hint: how many possible states are there, and in how many ways can you get from one state to another state? Explain what the key differences are with the synchronous state graph. What is the difference between the basins of attractions for the synchronous and the asynchronous network?
+
+The point of the attractor is that you do not get out of it. It can be a one state or two state.
+
+We know there are two attractors:
+
+```{r}
+attractors <- getAttractors(toy, type = 'asynchronous')
+print(attractors)
+plotAttractors(attractors)
+```
+
+Now look at where 0,0,0 can go to:
+
+```{r}
+# Now look at where 0,0,0 can go to:
+state = generateState(toy, c(A = 0, B = 0, C = 0))
+lapply(toy$genes, 
+       function(gene) {
+         stateTransition(toy, state, "asynchronous", chosenGene = gene) 
+       }
+      )
+```
+
+```{r}
+# Now look at where 0,1,0 can go to:
+state = generateState(toy, c(A = 0, B = 1, C = 0))
+lapply(toy$genes, 
+       function(gene) {
+         stateTransition(toy, state, "asynchronous", chosenGene = gene) 
+       }
+      )
+```
+
+```{r}
+# Now look at where 0,0,1 can go to:
+state = generateState(toy, c(A = 0, B = 0, C = 1))
+lapply(toy$genes, 
+       function(gene) {
+         stateTransition(toy, state, "asynchronous", chosenGene = gene) 
+       }
+      )
+```
+
+```{r}
+# Now look at where 1,1,1 can go to:
+state = generateState(toy, c(A = 1, B = 1, C = 1))
+lapply(toy$genes, 
+       function(gene) {
+         stateTransition(toy, state, "asynchronous", chosenGene = gene) 
+       }
+      )
+```
+
+```{r}
+# Now look at where 0,1,1 can go to:
+state = generateState(toy, c(A = 0, B = 1, C = 1))
+lapply(toy$genes, 
+       function(gene) {
+         stateTransition(toy, state, "asynchronous", chosenGene = gene) 
+       }
+      )
+```
+
+```{r}
+# Now look at where 0,0,1 can go to:
+state = generateState(toy, c(A = 1, B = 1, C = 1))
+lapply(toy$genes, 
+       function(gene) {
+         stateTransition(toy, state, "asynchronous", chosenGene = gene) 
+       }
+      )
+```
+
+```{r}
+# Now look at where 1,0,1 can go to:
+state = generateState(toy, c(A = 1, B = 0, C = 1))
+lapply(toy$genes, 
+       function(gene) {
+         stateTransition(toy, state, "asynchronous", chosenGene = gene) 
+       }
+      )
+```
+
+
+
+
+# Question 9: 
+
+Load the model and save it to a variable called emt. Print a summary.
+
+```{r}
+emt <- loadNetwork("steinway_reduced_boolnet.txt")
+emt
+summary(emt)
+print(emt)
+```
+
+
+# Question 10
+
+How many possible states are there in the reduced model? And in the full model?
+
+Counting  boxes....
+
+  Full:    2^709
+  Reduced: 2^19
+
+# Question 11
+
+Given an initial state with only B_catenin_memb, Dest_compl, E_cadherin, GSK3B, and miR200 ON, get the path to the attractor using synchronous updates. What does the path look like and what does the final state represent biologically?
+
+```{r Question 11}
+init.state = generateState(emt, 
+                           specs = c(B_catenin_memb = 1, 
+                                     Dest_compl = 1, 
+                                     E_cadherin = 1, 
+                                     GSK3B = 1, 
+                                     miR200 = 1))
+path = getPathToAttractor(emt, init.state)
+plotSequence(sequence = path)
+
+```
+
+# Question 12: 
+
+It is known that EMT can be induced experimentally by overexpressing TGFB. In the model this can be achieved by setting TGFB to ON in the initial state, while keeping the other genes in the epithelial state. What is the attractor for this initial condition? Plot the path to the attractor. Is the simulation result consistent with TGFB overexpression experiments?
+
+```{r Question 12}
+init.state = generateState(emt, 
+                           spec = c(B_catenin_memb = 1, 
+                                    Dest_compl = 1, 
+                                    E_cadherin = 1, 
+                                    GSK3B = 1, 
+                                    miR200 = 1,
+                                    TGFB = 1))
+path = getPathToAttractor(emt, init.state)
+plotSequence(sequence = path)
+```
+
+
+# Exercise 13 
+
+With this new network that has TGFB overexpressed, plot the path to the attractor again. Are there differences? Hint: if you get an error about the initial state, make sure it has the correct values for the genes you fixed.
+
+```{r Exercise 13}
+init.state = generateState(emt, 
+                           spec = c(B_catenin_memb = 1, 
+                                    Dest_compl = 1, 
+                                    E_cadherin = 1, 
+                                    GSK3B = 1, 
+                                    miR200 = 1,
+                                    TGFB = 1))
+overExpressedTGFB = fixGenes(emt, "TGFB", 1)
+path = getPathToAttractor(overExpressedTGFB, init.state)
+plotSequence(sequence = path)
+```
+# Question 14
+
+In cancer the occurrence of EMT is associated with a poor prognosis. Therefore, researchers are trying to find therapies that can block EMT. The boolean model can be used to make predictions on which targets may be useful to suppress. This can be studied by ‘knocking out’ genes from the network. Try to knock out every gene in the network and see if that would block EMT. Although for this relatively small network it is doable to do this ‘manually’, it is to be preferred to do this in an automated way: This minimizes the probability to make an error and the procedure could easily be repeated for bigger networks with more genes (hint: use a for loop over the genes).
+
+```{r}
+
+init.state = generateState(emt, 
+                           spec = c(B_catenin_memb = 1, 
+                                    Dest_compl = 1, 
+                                    E_cadherin = 1, 
+                                    GSK3B = 1, 
+                                    miR200 = 1,
+                                    TGFB = 1))
+for (gene in emt$genes) {
+  kd.state = init.state
+  kd.state[gene] = 0
+  fg = fixGenes(emt, gene, 0)
+
+  path = getPathToAttractor(fg, kd.state)
+  if (path[nrow(path),"E_cadherin"] == 1) {
+    print(gene)
+  }
+  plotSequence(sequence = path)
+}
+```
+# Exercise 15: 
+
+Of course knocking out TGFB would work to prevent EMT in the model. Are the other genes that you find a surprise? What kind of proteins do these genes code for? Hint: Study the EMT Wikipedia page.
+
+Solution: These are all transcription factors that are known to have an important role in EMT.
+
+
+# Exercise 16: 
+
+Next investigate whether combinatorial interventions of the genes in the model can also block
+17
+EMT. Hint 1: use the setdiff function to subtract the genes that can already individually suppress EMT. Hint 2: Use a double for loop or use the combn function with argument simplify = FALSE to get a list of combination knockouts you can try (the latter option is convenient because in that case you can use a single for loop).
+
+
+```{r}
+# remove genes that already block EMT on their own
+genes_for_double_knockdown = setdiff(genes_for_knockdown, single.knockdown.block.emt) 
+
+# generate combinations
+double_knock_down <- combn(genes_for_double_knockdown, 2, simplify = FALSE)
+
+# re-use function defined earlier to find double knockdown genes
+test = sapply(double_knock_down, 
+              function(genes) { testKnockDown(emt, emt.initial.plus.tgfb, genes, emt.blocked)
+                }
+              )
+names(test) <- unlist(lapply(double_knock_down, paste, collapse = " & ")) test[test == T]
+```
+

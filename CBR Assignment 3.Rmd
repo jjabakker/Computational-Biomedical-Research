@@ -1,0 +1,294 @@
+---
+title: "CBR assignment 3"
+author: "Hans"
+date: "9/19/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(pacman)
+p_load(tidyverse)
+p_load(ggplot2)
+p_load(GillespieSSA)
+p_load(deSolve)
+p_load(phaseR)
+theme_set(theme_minimal())
+source("killingfunctions.R")
+```
+
+
+
+# Question 2
+
+```{r Question 2}
+
+InitialCellCount <- 25
+
+# For the one_hit_ODE you need a tinestep of 0.5 s to see the individual cell deaths 
+parms <- c <- c(k1 = 0.8, k2 = 0.8, k3 = 0.8)
+times <- seq(0, 12, 0.5)
+out.ode <- one_hit_ODE(times, parms, InitialCellCount)
+plot(out.ode)
+
+# For the one_hit_ODE with a tinestep of 0.1 s you get a connected line 
+parms <- c <- c(k1 = 0.8, k2 = 0.8, k3 = 0.8)
+times <- seq(0, 12, 0.1)
+out.ode <- one_hit_ODE(times, parms, InitialCellCount)
+plot(out.ode)
+
+# For Gileespie it does not make a difference
+parms <- c <- c(k1 = 0.8, k2 = 0.8, k3 = 0.8)
+times <- seq(0, 12, 4)
+out.gil <- one_hit_gillespie(parms, InitialCellCount)
+plot(out.gil)
+```
+
+# Question 3: 
+
+Which model do you think is the best choice to represent the discussed experimental data? Why?
+
+Solution: The Gillespie simulations because at such low numbers of target cells the deaths are still visible as random events and we are specifically interested in the variability in number of deaths across the wells.
+
+# Question 4
+
+```{r Question 4}
+
+InitialCellCount <- 25
+simtype <- "one_hit_ODE"
+times <- seq(0, 12, 0.1)
+nwells <- 150
+stdev <- 2
+
+# Its is a matter of trying paramaters and try to emulate the pattern....
+
+InitialCellCount <- 25
+parms <- c(k1 = 0.8, k2 = 0.8, k3 = 0.8)
+out <- multiWell(nwells, simtype, parms, InitialCellCount, times, stdev )
+wellPlot(out)
+barchartplotter(out)
+
+InitialCellCount <- 10
+parms <- c(k1 = 1.5, k2 = 3, k3 = 0.5)
+out <- multiWell(nwells, simtype, parms, InitialCellCount, times, stdev )
+wellPlot(out)
+barchartplotter(out)
+
+```
+
+
+# Question 5: 
+
+Now use the multiWell function to simulate 150 wells with the Gillespie simulation. Take k1 = 1.5, k2 = 3 and vary k3 and the initial amount of targets until the distribution of deaths roughly matches that of the Poisson distribution above. Plot the outputs as bar charts and as scatterplots. How well do these simulated data match the experimental data? Which characteristics do match and which do not?
+
+```{r Question 5}
+
+simtype <- "one_hit_gillespie"
+times <- seq(0, 12, 0.1)
+nwells <- 150
+stdev <- 2
+
+# Its is a matter of varying InitialCellCount and k3  and try to emulate the pattern....
+
+InitialCellCount <- 25
+parms <- c <- c(k1 = 1.5, k2 = 3, k3 = 0.8)
+out <- multiWell(nwells, simtype, parms, InitialCellCount, times, stdev )
+wellPlot(out)
+barchartplotter(out)
+
+InitialCellCount <- 10
+parms <- c <- c(k1 = 1.5, k2 = 3, k3 = 0.8)
+out <- multiWell(nwells, simtype, parms, InitialCellCount, times, stdev )
+wellPlot(out)
+barchartplotter(out)
+
+InitialCellCount <- 10
+parms <- c <- c(k1 = 1.5, k2 = 3, k3 = 0.5)
+out <- multiWell(nwells, simtype, parms, InitialCellCount, times, stdev )
+wellPlot(out)
+barchartplotter(out)
+```
+
+
+# Question 7 
+
+You can run a two hit ODE model by using the simtype "two_hit_ODE" or a two hit Gillespie simulation by using the simtype "two_hit_gillespie". Use the models described above to get as close to the experimental data as possible. When you have decided on a model and parameters, run that simulation a few times to characterise how much variation there is in the results. Can you get closer to the experimental results than with the one-hit model?
+
+```{r Question 7}
+
+
+times <- seq(0, 12, 0.1)
+nwells <- 150
+stdev <- 2
+
+# Its is a matter of varying InitialCellCount and k3  and try to emulate the pattern....
+
+# First ODE
+simtype <- "two_hit_ODE"
+
+InitialCellCount <- 25
+stdev <- 5
+parms <- c(k1 = 1.5, k2 = 3, k3 = 0.8)
+out <- multiWell(nwells, simtype, parms, InitialCellCount, times, stdev )
+wellPlot(out)
+barchartplotter(out)
+
+InitialCellCount <- 10
+stdev <- 5
+parms <- c (k1 = 1.5, k2 = 3, k3 = 0.8)
+out <- multiWell(nwells, simtype, parms, InitialCellCount, times, stdev )
+wellPlot(out)
+barchartplotter(out)
+
+InitialCellCount <- 25
+stdev <- 5
+parms <- c(k1 = 0.5, k2 = 0.5, k3 = 0.2)
+out <- multiWell(nwells, simtype, parms, InitialCellCount, times, stdev )
+wellPlot(out)
+barchartplotter(out)
+
+
+# First Gillespie
+
+simtype <- "two_hit_gillespie"
+
+InitialCellCount <- 25
+stdev <- 5
+parms <- c(k1 = 1.5, k2 = 3, k3 = 0.8)
+out <- multiWell(nwells, simtype, parms, InitialCellCount, times, stdev )
+wellPlot(out)
+barchartplotter(out)
+
+InitialCellCount <- 10
+stdev <- 5
+parms <- c(k1 = 1.5, k2 = 3, k3 = 0.8)
+out <- multiWell(nwells, simtype, parms, InitialCellCount, times, stdev )
+wellPlot(out)
+barchartplotter(out)
+
+InitialCellCount <- 10
+stdev <- 5
+parms <- c(k1 = 0.5, k2 = 0.5, k3 = 0.2)
+out <- multiWell(nwells, simtype, parms, InitialCellCount, times, stdev )
+wellPlot(out)
+barchartplotter(out)
+```
+
+# Question 10
+
+```{r Question 10}
+source("csc.r")
+parameters = c(p1 = 0.5, p2 = 0.1, 
+               q1 = 0.5, q2 = 0.1, 
+               rcsc = 1, rpc = 1, 
+               dcsc = 0, dpc = 0, ddc = 0.5)
+```
+
+
+# Question 12
+
+```{r Question 12}
+# number of cells at initialization
+ncells = 1000
+
+# cancer stem cell fraction
+csc0 = 0.1
+
+yinit = c(CSC = csc0 * ncells, 
+          PC = 0.5 * (1 - csc0) * ncells, 
+          DC = 0.5 * (1 - csc0) * ncells)
+```
+
+
+
+# Question 13
+
+```{r Question 13}
+
+times = seq(0, 50, by = 0.01) 
+
+run_model(times, yinit, parameters)
+
+
+```
+
+# Question 14
+
+Test how the initial stem cell fraction affects tumour growth. Consider both the absolute and relative number of CSCs, PCs, and DCs during tumour growth.
+
+You find that the precentage CSC does not change much as wuth changinbg cancer stem cell fraction (and therefire woith increasing number of initial stem cells)
+
+```{r}
+# cancer stem cell fraction
+csc0 = 0.1
+yinit = c(CSC = csc0 * ncells, 
+          PC  = 0.5 * (1 - csc0) * ncells, 
+          DC  = 0.5 * (1 - csc0) * ncells)
+run_model(times, yinit, parameters)
+
+csc0 = 0.25
+yinit = c(CSC = csc0 * ncells, 
+          PC  = 0.5 * (1 - csc0) * ncells, 
+          DC  = 0.5 * (1 - csc0) * ncells)
+run_model(times, yinit, parameters)
+
+csc0 = 0.5
+yinit = c(CSC = csc0 * ncells, 
+          PC  = 0.5 * (1 - csc0) * ncells, 
+          DC  = 0.5 * (1 - csc0) * ncells)
+run_model(times, yinit, parameters)
+
+csc0 = 0.75
+yinit = c(CSC = csc0 * ncells, 
+          PC  = 0.5 * (1 - csc0) * ncells, 
+          DC  = 0.5 * (1 - csc0) * ncells)
+run_model(times, yinit, parameters)
+
+csc0 = 0.01
+yinit = c(CSC = csc0 * ncells, 
+          PC  = 0.5 * (1 - csc0) * ncells, 
+          DC  = 0.5 * (1 - csc0) * ncells)
+run_model(times, yinit, parameters)
+
+```
+
+
+
+# Question 18
+
+Refer to Word file
+
+(p1-p3) * rcsc - dcsc  = 0   -> Constant
+(p1-p3) * rcsc - dcsc  > 0   -> Growth
+(p1-p3) * rcsc - dcsc  < 0   -> Decline
+
+```{r Question 18}
+
+times = seq(0, 50, by = 0.01) 
+
+# An example for a declining CSC population:
+parameters = c(p1 = 0.5, p2 = 0.1, 
+               q1 = 0.5, q2 = 0.1, 
+               rcsc = 1, rpc = 1, 
+               dcsc = 0.2, dpc = 0, ddc = 0.5)
+
+((2 * parameters['p1'] - 1 + parameters['p2']) * parameters['rcsc'] - parameters['dcsc'])
+
+run_model(times, yinit, parameters)
+
+# An example for a constant CSC population:
+parameters = c(p1 = 0.5, p2 = 0.1, 
+               q1 = 0.5, q2 = 0.1, 
+               rcsc = 1, rpc = 1, 
+               dcsc = 0.1, dpc = 0, ddc = 0.5)
+((2 * parameters['p1'] - 1 + parameters['p2']) * parameters['rcsc'] - parameters['dcsc'])
+run_model(times, yinit, parameters)
+
+# An example for an increasing  CSC population:
+parameters = c(p1 = 0.5, p2 = 0.1, 
+               q1 = 0.5, q2 = 0.1, 
+               rcsc = 1, rpc = 1, 
+               dcsc = 0, dpc = 0, ddc = 0.5)
+((2 * parameters['p1'] - 1 + parameters['p2']) * parameters['rcsc'] - parameters['dcsc'])
+run_model(times, yinit, parameters)
+```

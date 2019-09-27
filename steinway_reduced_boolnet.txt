@@ -1,0 +1,20 @@
+targets, factors
+AKT, SMAD | SOS_GRB2 | ! GSK3B | B_catenin_nuc
+AXIN2, AXIN2 | B_catenin_nuc
+B_catenin_memb, E_cadherin & ! B_catenin_nuc
+B_catenin_nuc, ! Dest_compl & ! B_catenin_memb & (SMAD | GLI | ! E_cadherin)
+Dest_compl, (GSK3B & AXIN2 & B_catenin_nuc) | (GSK3B & Dest_compl)
+E_cadherin, B_catenin_memb & (! SNAI1 | (! NOTCH & ! SMAD) | ! ZEB1 | ! ZEB2 | ! TWIST1 | ! SNAI2)
+GLI, B_catenin_nuc | SMAD | GLI
+GSK3B, ! GLI & ! AKT
+MEK, SOS_GRB2 | ! GSK3B | B_catenin_nuc | ! (! MEK | ! SNAI1)
+NOTCH, SOS_GRB2 | ! GSK3B | B_catenin_nuc | SMAD
+SMAD, (MEK | TGFB) & (ZEB1 | ! ZEB2)
+SNAI1, GLI | SMAD | B_catenin_nuc | TGFB | NOTCH | MEK | AKT | ! GSK3B
+SNAI2, MEK | B_catenin_nuc | SNAI2 | TWIST1
+SOS_GRB2, (B_catenin_nuc | TGFB) & ! MEK
+miR200, ! SNAI1 & ! ZEB1 & ! ZEB2
+TGFB, SNAI1 | TWIST1 | GLI
+TWIST1, AKT | B_catenin_nuc | SNAI1
+ZEB1, SNAI1 & ! miR200
+ZEB2, SNAI1 & ! miR200

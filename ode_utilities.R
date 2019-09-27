@@ -38,6 +38,7 @@ test_stability <- function (e_values, trace, det) {
   }
 }
 
+
 # This function uses just the eigen values to determine the type of equilibrium 
 
 test_stability_jacobian <- function (Jacobian) {
@@ -71,6 +72,36 @@ test_stability_jacobian <- function (Jacobian) {
   }
   else {
     return("Saddle")
+  }
+}
+
+
+test_stability1 <- function (trace, det) {
+  
+  if (det <= 0) {
+    return('Saddle')
+  }
+  else if (isTRUE(all.equal(det, 0))) {
+    return('Centre')
+  }
+  else if ( trace < 0 ) {   # Stable
+    if ((trace^2 - 4*det) < 0) {
+      return ('Stable Spiral')
+    }
+    else {
+      return ('Stable Node')
+    }
+  }
+  else if (trace > 0) {  # Unstable
+    if ((trace^2 - 4*det) < 0) {
+      return ('Unstable Spiral')
+    }
+    else {
+      return ('Unstable Node')
+    }
+  }
+  else { # You should not arrive here really.....
+    return('Centre 1')
   }
 }
 

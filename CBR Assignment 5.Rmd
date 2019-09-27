@@ -1,0 +1,90 @@
+---
+title: "CBR Assignment 5"
+author: "Hans"
+date: "9/27/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(pacman)
+p_load(tidyverse)
+p_load(ggplot2)
+p_load(Deriv)
+p_load(deSolve)
+p_load(phaseR)
+p_load(gridExtra)
+theme_set(theme_minimal())
+```
+
+# Question 6: 
+
+Simulate a time plot of the model setting Vm = 1.0, K = 0.5 and the degradation parameter you chose to 0.1 and using the ode function from the R package deSolve. Set P1 at a value of 0.3. Note that hereafter we will consider pulses of P1; in order to plot a time course of P1 it is handy to now already include it as the ODE dP 1/dt = 0 and initialize it at 0.3. What happens in the long run?
+
+```{r define_model}
+model23 = function(timepoint, state, parameters) { 
+  with(as.list(c(state, parameters)), {
+    dP2 = (Vm * P1^4 ) / (K + P1^4 )  - kdeg2 * P3 
+    dP3 = (Vm * P1^4 * P2^4) / (K + P1^4 * P2^4)  - kdeg3 * P3 
+    list(c(dP2, dP3))
+  }) 
+}
+
+model123 = function(timepoint, state, parameters) { 
+  with(as.list(c(state, parameters)), {
+    dp1 = 0
+    dP2 = (Vm * P1^4 ) / (K + P1^4 )  - kdeg2 * P3 
+    dP3 = (Vm * P1^4 * P2^4) / (K + P1^4 * P2^4)  - kdeg3 * P3 
+    list(c(dP1, dP2, dP3))
+  }) 
+}
+```
+
+
+```{r }
+pars = c(Vm = 1.0, P1 = 0.3, K = 0.5, kdeg2 = 0.1, kdeg3 = 0.1)
+time_int = c(0, 20)
+
+# Set the axis limits
+xlim = c(-2, 2) 
+ylim = c(-1, 1)
+
+model.flowField = flowField(model23, 
+                            xlim = xlim, ylim = ylim, 
+                            parameters = pars,
+                            state.names = c("P2", "P3"),
+                            points = 19, 
+                            add = FALSE, 
+                            xlab = "P2", 
+                            ylab = "P3", )
+
+# draw nullclines
+model.nullclines = nullclines(model23, 
+                              xlim = xlim, ylim = ylim,
+                              parameters = pars,
+                              points = 500, 
+                              state.names = c("P2", "P3"))
+
+# draw trajectory
+inival = c(5, 5)
+model.trajectory = trajectory(model23, 
+                              y0 = inival, 
+                              tlim = time_int, 
+                              parameters = pars, 
+                              state.names = c("P2", "P3"))
+inival = c(0, 5)
+model.trajectory = trajectory(model23, 
+                              y0 = inival, 
+                              tlim = time_int, 
+                              parameters = pars, 
+                              state.names = c("P2", "P3"))
+inival = c(5, 0)
+model.trajectory = trajectory(model23, 
+                              y0 = inival, 
+                              tlim = time_int, 
+                              parameters = pars, 
+                              state.names = c("P2", "P3"))
+
+```
+
+
