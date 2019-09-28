@@ -2,7 +2,9 @@
 title: "CBR Assignment 5"
 author: "Hans"
 date: "9/27/2019"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}

@@ -2,7 +2,9 @@
 title: "CBR Assignment 4"
 author: "Hans"
 date: "9/26/2019"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 # Setup - always run
@@ -100,8 +102,15 @@ for (i in seq(10)) {
 
 
 ```{r Question 4b}
+
+# Define a function to fill a matric with the results
+# The columns are the state variables
+# The first row is the initial state
+# The subsequent rows are simulations
+# Return it as a frame
+
 getTimeSeries = function(network, init.state, iter, ...) {
-  path = matrix(NA, 
+  path = matrix(data = NA, 
                 nrow = iter + 1, 
                 ncol = length(network$genes)) 
   colnames(path) = network$genes
@@ -109,10 +118,12 @@ getTimeSeries = function(network, init.state, iter, ...) {
   for (i in 1:iter) {
     path[1 + i, ] = stateTransition(network, path[i, ], ...) 
   }
-  as.data.frame(path) }
+  as.data.frame(path) 
+}
 
 init.state = generateState(toy, c(A = 0, B = 0, C = 0))
-getTimeSeries(toy, init.state, 10, 'synchronous')
+path = getTimeSeries(toy, init.state, 10, 'synchronous')
+path
 plotSequence(sequence = path)
 
 ```
@@ -123,9 +134,7 @@ Plot some time series for various initial states, what states do we end up in? I
 ```{r Question 5a}
 
 # Analysis of synchronous. 
-# Many end up in the same patterm, but not all
-# One exception: A = 1, B = 0, C = 0
-# Another: A = 0, B = 1, C = 1)
+# They all end up in a repeating pattern, but the patterns are not all the same
 
 init.state = generateState(toy, c(A = 0, B = 0, C = 0))
 path = getTimeSeries(toy, init.state, 10, 'synchronous')
@@ -182,15 +191,16 @@ plotSequence(sequence = path)
 ```{r}
 
 # The getPathToAttractor seems to be available only for synchronous transitions
+# It gives you the attractor that the nitial state will lead to
 path = getPathToAttractor(toy, init.state)
 plotSequence(sequence = path)
 
-# The getAttractors call for synchronous transitions
+# The getAttractors call for synchronous transitions gives you all the synchronous attractors
 attractors <- getAttractors(toy, type = 'synchronous')
 print(attractors)
 plotAttractors(attractors)
 
-# The getAttractors call for asynchronous transitions
+# The getAttractors call for asynchronous transitions gives you all the asynchronous attractors
 attractors <- getAttractors(toy, type = 'asynchronous')
 print(attractors)
 plotAttractors(attractors)
@@ -209,15 +219,16 @@ Unfortunately for asynchronous networks Boolnet cannot automatically draw transi
 
 The point of the attractor is that you do not get out of it. It can be a one state or two state.
 
-We know there are two attractors:
+We know there are two attractors: 001 and 100
 
 ```{r}
 attractors <- getAttractors(toy, type = 'asynchronous')
 print(attractors)
 plotAttractors(attractors)
 ```
+Now just go find out all the different routes and draw the diagram
 
-Now look at where 0,0,0 can go to:
+Now look at where 000 can go to: 100, 000, 001
 
 ```{r}
 # Now look at where 0,0,0 can go to:
@@ -230,7 +241,7 @@ lapply(toy$genes,
 ```
 
 ```{r}
-# Now look at where 0,1,0 can go to:
+# Now look at where 010 can go to: 110, 000, 011
 state = generateState(toy, c(A = 0, B = 1, C = 0))
 lapply(toy$genes, 
        function(gene) {
@@ -240,7 +251,7 @@ lapply(toy$genes,
 ```
 
 ```{r}
-# Now look at where 0,0,1 can go to:
+# Now look at where 001 can go to: 001
 state = generateState(toy, c(A = 0, B = 0, C = 1))
 lapply(toy$genes, 
        function(gene) {
@@ -250,7 +261,7 @@ lapply(toy$genes,
 ```
 
 ```{r}
-# Now look at where 1,1,1 can go to:
+# Now look at where 111 can go to: 011, 111, 110
 state = generateState(toy, c(A = 1, B = 1, C = 1))
 lapply(toy$genes, 
        function(gene) {
@@ -260,7 +271,7 @@ lapply(toy$genes,
 ```
 
 ```{r}
-# Now look at where 0,1,1 can go to:
+# Now look at where 011 can go to: 011, 001
 state = generateState(toy, c(A = 0, B = 1, C = 1))
 lapply(toy$genes, 
        function(gene) {
@@ -270,7 +281,7 @@ lapply(toy$genes,
 ```
 
 ```{r}
-# Now look at where 0,0,1 can go to:
+# Now look at where 001 can go to: 011, 111, 110
 state = generateState(toy, c(A = 1, B = 1, C = 1))
 lapply(toy$genes, 
        function(gene) {
@@ -280,7 +291,7 @@ lapply(toy$genes,
 ```
 
 ```{r}
-# Now look at where 1,0,1 can go to:
+# Now look at where 101 can go to: 001, 111, 100
 state = generateState(toy, c(A = 1, B = 0, C = 1))
 lapply(toy$genes, 
        function(gene) {
@@ -310,12 +321,15 @@ How many possible states are there in the reduced model? And in the full model?
 
 Counting  boxes....
 
-  Full:    2^709
+  Full:    2^70
   Reduced: 2^19
 
 # Question 11
 
 Given an initial state with only B_catenin_memb, Dest_compl, E_cadherin, GSK3B, and miR200 ON, get the path to the attractor using synchronous updates. What does the path look like and what does the final state represent biologically?
+
+
+Note that the initial state is in fact the end state:there is no change!
 
 ```{r Question 11}
 init.state = generateState(emt, 
@@ -334,6 +348,8 @@ plotSequence(sequence = path)
 It is known that EMT can be induced experimentally by overexpressing TGFB. In the model this can be achieved by setting TGFB to ON in the initial state, while keeping the other genes in the epithelial state. What is the attractor for this initial condition? Plot the path to the attractor. Is the simulation result consistent with TGFB overexpression experiments?
 
 ```{r Question 12}
+
+# Here we set TGFB to on 
 init.state = generateState(emt, 
                            spec = c(B_catenin_memb = 1, 
                                     Dest_compl = 1, 
@@ -358,6 +374,10 @@ init.state = generateState(emt,
                                     GSK3B = 1, 
                                     miR200 = 1,
                                     TGFB = 1))
+
+# Note the syntax here, fixGenes changes something in the model
+# You continue sumulating with that new model
+
 overExpressedTGFB = fixGenes(emt, "TGFB", 1)
 path = getPathToAttractor(overExpressedTGFB, init.state)
 plotSequence(sequence = path)
@@ -368,6 +388,7 @@ In cancer the occurrence of EMT is associated with a poor prognosis. Therefore, 
 
 ```{r}
 
+# Start with the same initial state
 init.state = generateState(emt, 
                            spec = c(B_catenin_memb = 1, 
                                     Dest_compl = 1, 
@@ -375,17 +396,65 @@ init.state = generateState(emt,
                                     GSK3B = 1, 
                                     miR200 = 1,
                                     TGFB = 1))
+kd_genes = vector()
 for (gene in emt$genes) {
   kd.state = init.state
   kd.state[gene] = 0
-  fg = fixGenes(emt, gene, 0)
+  kd.emt = fixGenes(emt, gene, 0)
 
-  path = getPathToAttractor(fg, kd.state)
+  path = getPathToAttractor(kd.emt, kd.state)
   if (path[nrow(path),"E_cadherin"] == 1) {
     print(gene)
+    kd_genes = append(kd_genes, gene)
   }
   plotSequence(sequence = path)
 }
+
+
+# You find 6 genes, that when knocked down cause E-Cadherin expression to be on
+# "SNAI1"
+# "SNAI2"
+# "TGFB"
+# "TWIST1"
+# "ZEB1"
+# "ZEB2"
+
+```
+A different programming approach:
+
+```{r}
+# exclude TGFB from testing
+excluded_genes <- c("TGFB")
+
+genes_for_knockdown <- setdiff(emt$genes, excluded_genes)
+# define function to test whether EMT is blocked
+
+emt.blocked <- function(attractor) { 
+  any(as.integer(attractor$E_cadherin))
+}
+
+# Define function which runs a simulation for network with 1 blocked gene 
+# and tests whether EMT is blocked
+testKnockDown <- function (network, init.state, genes, test.function) {
+  knockdown.init.state = init.state
+  kd_network = fixGenes(network, genes, 0) 
+  knockdown.init.state[genes] = 0
+  path = getPathToAttractor(kd_network, knockdown.init.state) 
+  attr_states = path[attr(path, "attractor"), ]
+  success = do.call(test.function, list(attr_states))
+  success
+}
+
+emt.initial.plus.tgfb = init.state 
+emt.initial.plus.tgfb["TGFB"] = 1
+# apply the function defined above to all relevant genes and print the genes 
+# whose knockdown blocks EMT
+test = sapply(genes_for_knockdown, function(genes) {
+  testKnockDown(emt, emt.initial.plus.tgfb, genes, emt.blocked) 
+  }
+  )
+single.knockdown.block.emt = names(test[test == T]) 
+single.knockdown.block.emt
 ```
 # Exercise 15: 
 
@@ -397,22 +466,47 @@ Solution: These are all transcription factors that are known to have an importan
 # Exercise 16: 
 
 Next investigate whether combinatorial interventions of the genes in the model can also block
-17
-EMT. Hint 1: use the setdiff function to subtract the genes that can already individually suppress EMT. Hint 2: Use a double for loop or use the combn function with argument simplify = FALSE to get a list of combination knockouts you can try (the latter option is convenient because in that case you can use a single for loop).
+EMT. 
+Hint 1: use the setdiff function to subtract the genes that can already individually suppress EMT. 
+Hint 2: Use a double for loop or use the combn function with argument simplify = FALSE to get a list of combination knockouts you can try (the latter option is convenient because in that case you can use a single for loop).
 
+Rephrasing the question: 
+
+* We know already that 6 individual genes gcause knockdown 
+* In the remaining set, are there combinations of 2 genes that can do the knockdown?
 
 ```{r}
-# remove genes that already block EMT on their own
-genes_for_double_knockdown = setdiff(genes_for_knockdown, single.knockdown.block.emt) 
 
-# generate combinations
-double_knock_down <- combn(genes_for_double_knockdown, 2, simplify = FALSE)
+genes.for.kd <- setdiff(emt$genes, kd_genes)
+genes.double.kd <- combn(genes.for.kd, 2, simplify = F)
 
-# re-use function defined earlier to find double knockdown genes
-test = sapply(double_knock_down, 
-              function(genes) { testKnockDown(emt, emt.initial.plus.tgfb, genes, emt.blocked)
-                }
-              )
-names(test) <- unlist(lapply(double_knock_down, paste, collapse = " & ")) test[test == T]
+# Start with the same initial state
+init.state = generateState(emt, 
+                           spec = c(B_catenin_memb = 1, 
+                                    Dest_compl = 1, 
+                                    E_cadherin = 1, 
+                                    GSK3B = 1, 
+                                    miR200 = 1,
+                                    TGFB = 1))
+gene_pairs = vector()
+
+for (genes in genes.double.kd) {
+  
+  kd.state = init.state
+  kd.state[genes[1]] = 0
+  kd.state[genes[2]] = 0
+  kd.emt = fixGenes(emt, genes, 0)
+
+  path = getPathToAttractor(kd.emt, kd.state)
+  if (path[nrow(path),"E_cadherin"] == 1) {
+    #print(genes[1])
+    gene_pairs = append(gene_pairs, genes)
+    plotSequence(sequence = path)
+  }
+}
+
+
 ```
+
+
 

@@ -33,10 +33,14 @@ ylim = c(-10, 10)
 # no parameters in the ODE, so we set pars as an empty vector
 pars = vector()
 # draw vector field
-model.flowField = flowField(xlab = "x", ylab = "y", model, 
-                            xlim = xlim, ylim = ylim, 
+model.flowField = flowField(xlab = "x", 
+                            ylab = "y", 
+                            model, 
+                            xlim = xlim, 
+                            ylim = ylim, 
                             parameters = pars, 
-                            points = 19, add = FALSE, 
+                            points = 19, 
+                            add = FALSE, 
                             state.names = c("x", "y"))
 
 # draw nullclines
