@@ -19,8 +19,15 @@ theme_set(theme_minimal())
 ```
 
 
-# Define the model and plot flow field, null clines and one trajectory
-```{r define_model}
+# Autocatalysis
+
+##  Question 10
+
+Now study the model for n=1 by numerical analysis and simulation on the computer. First check whether your sketch of the nullclines and vector field was correct. Then run simulations and plot them as time plots as well as in the phase space. Determine the stability and type of the equilibrium. Try several combinations of parameter values (while keeping n at 1).
+
+```{r Question 10-a}
+
+# With n = 1
 
 autocat_model = function(timepoint, state, parameters) { 
   with(as.list(c(state, parameters)), {
@@ -37,20 +44,22 @@ ylim = c(-5, 5)
 xlim = c(0, 2) 
 ylim = c(0, 2)
 
-
-pars = c(k0 = 0.1, k1 = 0.1, k2 = 0.1, K = 3, n = 3)
-
 pars = c(k0 = 5, k1 = 2, k2 = 5, K = 1, n = 1)
 
+eq_s2 = pars["k0"] / pars["k2"]
+eq_s1 = pars["k0"] / (pars["k1"] * (1 + pars["k0"]/(pars["k2"] * pars["K"])))
+
 #draw vector field
-model.flowField = flowField(xlab = "S1", ylab = "S2", autocat_model,
+model.flowField = flowField(xlab = "S1", ylab = "S2", 
+                            autocat_model,
                             xlim = xlim, ylim = ylim,
                             parameters = pars,
                             points = 19, add = FALSE,
                             state.names = c("S1", "S2"))
 
 # draw nullclines
-model.nullclines = nullclines(autocat_model, xlim = xlim, ylim = ylim,
+model.nullclines = nullclines(autocat_model, 
+                               xlim = xlim, ylim = ylim,
                               parameters = pars,
                               points = 500, 
                               state.names = c("S1", "S2"))
@@ -85,7 +94,7 @@ model.trajectory = trajectory(autocat_model, y0 = c(5, -10),
 ```
 
 
-```{r}
+```{r Question 10-b}
 
 # Perform numerical simulation and plot end result
 # The function numericalSolution
@@ -151,8 +160,9 @@ legend("topright", col = c("green", "orange"), legend = c("x", "y"), lty = 1)
 
 ## Question 11
 
-```{r define_model}
+Use simulations and describe how the nullclines change when n is increased: does this affect the number of equilibria and the stability? Also plot solutions of the ODE model in the phase space and create timeplots.
 
+```{r Question 11}
 
 autocat_model = function(timepoint, state, parameters) { 
   with(as.list(c(state, parameters)), {
@@ -169,10 +179,20 @@ ylim = c(-5, 5)
 xlim = c(0, 5) 
 ylim = c(0, 5)
 
-
-pars = c(k0 = 0.1, k1 = 0.1, k2 = 0.1, K = 3, n = 3)
-
 pars = c(k0 = 5, k1 = 2, k2 = 5, K = 1, n = 5)
+
+k0 = pars["k0"] 
+k1 = pars["k1"]
+k2 = pars["k2"]
+K  = pars["K"]
+n  = pars["n"]
+
+eq_s2 = k0 / k2
+eq_s1 = k0 / k1 * 1 / (1 + (k0/(k2*K))^n)
+
+(Trace = -k1 * (1 + (eq_s2/K)^n) + k1 * eq_s1 * n *eq_s2^(n-1) / K^n - k2)
+(Det   = k1 * k2 * (1 + eq_s2/K))
+(Discr = Trace^2 - 4 * Det)
 
 #draw vector field
 model.flowField = flowField(xlab = "S1", ylab = "S2", autocat_model,
@@ -189,32 +209,23 @@ model.nullclines = nullclines(autocat_model, xlim = xlim, ylim = ylim,
 
 # Determine stability
 stab.expgrowth = stability(autocat_model, 
-                           ystar = c(1,1), 
+                           ystar = c(1.2,1), 
                            parameters = pars, 
                            system = "two.dim", 
                            state.names = c("S1", "S2")
                            )
 # draw trajectory
 model.trajectory = trajectory(autocat_model,
-                              y0 = c(1, 1),
-                              tlim = c(0, 10),
+                              y0 = c(1, 2),
+                              tlim = c(0, 100),
                               parameters = pars,
                               state.names = c("S1", "S2"))
-# model.trajectory = trajectory(autocat_model,
-#                               y0 = c(-0.5, 0),
-#                               tlim = c(0, 10),
-#                               parameters = pars,
-#                               state.names = c("S1", "S2"))
-# model.trajectory = trajectory(autocat_model, 
-#                               y0 = c(1, 2),
-#                               tlim = c(0, 10),
-#                               parameters = pars,
-#                               state.names = c("S1", "S2"))
-# model.trajectory = trajectory(autocat_model, y0 = c(4, 5),
-#                               tlim = c(0, 10),
-#                               parameters = pars,
-#                               state.names = c("S1", "S2"))
 
+#model.trajectory = trajectory(autocat_model,
+#                              y0 = c(3, 3),
+#                              tlim = c(0, 100),
+#                              parameters = pars,
+#                              state.names = c("S1", "S2"))
 ```
 
 ```{r}
@@ -280,11 +291,12 @@ model.numericalSolution = numericalSolution(autocat_model,
 legend("topright", col = c("green", "orange"), legend = c("x", "y"), lty = 1)
 
 ```
+
 # Michaelis Menten
 
 ## Question 18
 
-```{r Michaelis Menten}
+```{r Question 18}
 
 library(deSolve)
 
@@ -326,7 +338,7 @@ gridExtra::grid.arrange(
 
 ## Question 19
 
-```{r}
+```{r Question 19}
  
 
 dpdt <- function (S, Vmax, Km) {
@@ -359,7 +371,7 @@ p
 
 ## Question 21
 
-```{r}
+```{r Question 21}
 
 mm = function(t, state, parameters) { 
   with(as.list(c(state, parameters)), {

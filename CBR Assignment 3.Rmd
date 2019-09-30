@@ -37,9 +37,8 @@ times <- seq(0, 12, 0.1)
 out.ode <- one_hit_ODE(times, parms, InitialCellCount)
 plot(out.ode)
 
-# For Gillespie it does not make a difference
+# For Gillespie the time step does does not make a difference: time is b=not a parameter
 parms <- c <- c(k1 = 0.8, k2 = 0.8, k3 = 0.8)
-times <- seq(0, 12, 4)
 out.gil <- one_hit_gillespie(parms, InitialCellCount)
 plot(out.gil)
 ```
@@ -63,7 +62,7 @@ stdev <- 2
 # Its is a matter of trying paramaters and try to emulate the pattern....
 
 InitialCellCount <- 25
-parms <- c(k1 = 0.8, k2 = 0.8, k3 = 0.8)
+parms <- c(k1 = 1.5, k2 = 3, k3 = 0.5)
 out <- multiWell(nwells, simtype, parms, InitialCellCount, times, stdev )
 wellPlot(out)
 barchartplotter(out)
@@ -148,7 +147,7 @@ wellPlot(out)
 barchartplotter(out)
 
 
-# First Gillespie
+# Then Gillespie
 
 simtype <- "two_hit_gillespie"
 
@@ -187,6 +186,8 @@ parameters = c(p1 = 0.5, p2 = 0.1,
 
 # Question 12
 
+Create a vector with the inital amount of cells based on the above-defined CSC fraction and distribute the remaining cells evenly over PCs and DCs.
+
 ```{r Question 12}
 # number of cells at initialization
 ncells = 1000
@@ -195,13 +196,15 @@ ncells = 1000
 csc0 = 0.1
 
 yinit = c(CSC = csc0 * ncells, 
-          PC = 0.5 * (1 - csc0) * ncells, 
-          DC = 0.5 * (1 - csc0) * ncells)
+          PC  = 0.5 * (1 - csc0) * ncells, 
+          DC  = 0.5 * (1 - csc0) * ncells)
 ```
 
 
 
 # Question 13
+
+Create a time sequence and run the model using the predefined function run_model which expects three arguments: a time sequence, a vector for the initial condition and one for the parameters. Make sure you are able to change the model parameters and initial condition. What happens during the simulation? Does it settle at an equilibrium?
 
 ```{r Question 13}
 
@@ -254,13 +257,15 @@ run_model(times, yinit, parameters)
 
 
 
-# Question 18
+# Question 16 + 17 + 18
+
+Use the derived inequality to run the model with parameters such that the CSC population grows, shrinks, or remains constant. If the CSC population does not develop as expected, re-evaluate the inequality.
 
 Refer to Word file
 
-(p1-p3) * rcsc - dcsc  = 0   -> Constant
-(p1-p3) * rcsc - dcsc  > 0   -> Growth
-(p1-p3) * rcsc - dcsc  < 0   -> Decline
+(2p1 - 1 - p2) * rcsc - dcsc  = 0   -> Constant
+(2p1 - 1 - p2) * rcsc - dcsc  > 0   -> Growth
+(2p1 - 1 - p2) * rcsc - dcsc  < 0   -> Decline
 
 ```{r Question 18}
 
@@ -292,3 +297,110 @@ parameters = c(p1 = 0.5, p2 = 0.1,
 ((2 * parameters['p1'] - 1 + parameters['p2']) * parameters['rcsc'] - parameters['dcsc'])
 run_model(times, yinit, parameters)
 ```
+
+
+# Question 19 + 20 + 21
+
+Use the derived inequality to run the model with parameters such that the PC population grows, shrinks, or remains constant (still in the absence of CSCs). If the PC population does not develop as expected, re-evaluate the inequality.
+
+Refer to Word file
+
+(2q1 - 1 + q2) * rpc - dpc  = 0   -> Constant
+(2q1 - 1 + q2) * rpc - dpc  > 0   -> Growth
+(2q1 - 1 + q2) * rpc - dpc  < 0   -> Decline
+
+```{r Question 21}
+
+times = seq(0, 50, by = 0.01) 
+csc0 = 0
+yinit = c(CSC = csc0 * ncells, 
+          PC = 0.5 * (1 - csc0) * ncells, 
+          DC = 0.5 * (1 - csc0) * ncells)
+
+# An example for a declining PC population:
+
+parameters = c(p1 = 0.5, p2 = 0.1, 
+               q1 = 0.5, q2 = 0.1, 
+               rcsc = 1, rpc = 1, 
+               dcsc = 0.2, dpc = 0.2, ddc = 0.5)
+((2 * parameters['q1'] - 1 + parameters['q2']) * parameters['rpc'] - parameters['dpc'])
+run_model(times, yinit, parameters)
+
+# An example for a constant PC population:
+parameters = c(p1 = 0.5, p2 = 0.1, 
+               q1 = 0.5, q2 = 0.1, 
+               rcsc = 1, rpc = 1, 
+               dcsc = 0.2, dpc = 0.1, ddc = 0.5)
+((2 * parameters['q1'] - 1 + parameters['q2']) * parameters['rpc'] - parameters['dpc'])
+run_model(times, yinit, parameters)
+
+# An example for an increasing  PC population:
+parameters = c(p1 = 0.5, p2 = 0.1, 
+               q1 = 0.5, q2 = 0.2, 
+               rcsc = 1, rpc = 1, 
+               dcsc = 0, dpc = 0, ddc = 0.5)
+((2 * parameters['q1'] - 1 + parameters['q2']) * parameters['rpc'] - parameters['dpc'])
+run_model(times, yinit, parameters)
+```
+
+# Question 22
+
+You derived two conditions, one determining whether the number of CSCs increases and one determining whether the number of PCs increases. Investigate what happens to the total size of the tumour population when the parameters do not allow for growth of the CSC and PC population. Why does this happen?
+
+
+```{r Question 22}
+times = seq(0, 500, by = 0.1) 
+csc0 = 0.1
+ncells = 1000
+yinit = c(CSC = csc0 * ncells, 
+          PC = 0.5 * (1 - csc0) * ncells, 
+          DC = 0.5 * (1 - csc0) * ncells)
+
+# An example for a declining PC population:
+
+parameters = c(p1 = 0.5, p2 = 0.1, 
+               q1 = 0.5, q2 = 0.1, 
+               rcsc = 1, rpc = 1, 
+               dcsc = 0.2, dpc = 0.2, ddc = 0.5)
+
+((2 * parameters['p1'] - 1 + parameters['p2']) * parameters['rcsc'] - parameters['dcsc'])
+((2 * parameters['q1'] - 1 + parameters['q2']) * parameters['rpc'] - parameters['dpc'])
+
+run_model(times, yinit, parameters)
+```
+
+
+# Question 23
+
+You found conditions for which the population either grows or shrinks, there are however also parameters for which the population reaches an equilibrium size with all types of cells present. For this, we will search for parameters for which dCSC = dPC = dDC = 0. To simplify this search, we assume that CSCs and PCs do not die, all cells divide at rate 1, and there are no asymmetric stem cell divisions. Solve the dCSC equation to find values for p1 and p3 such that the CSC population is at equilibrium.
+
+p1 = p3 and p2 = 0, so p1 = p3 = 0.5
+
+# Question 24
+What is the expression for the equilibrium value for CSC, i.e., what is the value for CSC if dCSC = 0
+
+Solution: The solution of dCSC = 0 is independent of CSC. Hence, CSC never changes and is thus equal to the initial value, which we call CSC0.
+
+# Question 27
+Find values for q1, q2, and q3 such that the equilibrium value for PC is positive and substitute those values in the result of the previous question. Use this result to predict the effect of dDC on the DC equilibrium value and test this by simulating the model.
+
+
+```{r}
+csc0 = 0.1
+CSC0 = csc0 * ncells
+yinit = c(CSC = csc0 * ncells, 
+          PC = 0.5 * (1 - csc0) * ncells, 
+          DC = 0.5 * (1 - csc0) * ncells)
+parameters = c(p1 = 0.5, p2 = 0, 
+               q1 = 0.4, q2 = 0.1, 
+               rcsc = 1, rpc = 1, 
+               dcsc = 0, dpc = 0, ddc = 0.3)
+times = seq(0, 100, by = 0.1) 
+run_model(times, yinit, parameters)
+
+q3 = 1 - parameters['q1'] - parameters['q2']
+(PC <- CSC0 / (q3 - parameters['q1']))
+(DC <- (parameters['q2'] + 2 * q3) * PC /  parameters['ddc'])
+(CSC0)
+```
+

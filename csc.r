@@ -1,6 +1,6 @@
 # ODE model
-csc = function(t, state, parameters){
-    with(as.list(c(state,parameters)),{
+csc = function(t, state, parameters) {
+    with(as.list(c(state, parameters)),{
         p3   = 1 - p1 - p2
         q3   = 1 - q1 - q2
         dcsc = (p1 - p3) * rcsc * CSC - dcsc * CSC
@@ -27,10 +27,10 @@ run_model = function(t, state, parameters){
   # dev.new(width=12, height=6)
 		
     par(mfrow=c(2,4))
-    plot(time, CSC,main="CSC",type="l",xlab="time",ylab="cells")
-    plot(time, PC,main="PC",type="l",xlab="time",ylab="cells")    
-    plot(time, DC,main="DC",type="l",xlab="time",ylab="cells")
-    plot(time, n,main="population",type="l",xlab="time",ylab="cells")
+    plot(time, CSC, main="CSC", type="l", xlab="time", ylab="cells")
+    plot(time, PC, main="PC", type="l", xlab="time", ylab="cells")    
+    plot(time, DC, main="DC", type="l", xlab="time", ylab="cells")
+    plot(time, n, main="population",type="l",xlab="time",ylab="cells")
     plot(time, 100*CSC/n,main="percentage CSC",type="l",xlab="time",ylab="%",ylim=c(0,100))
     plot(time, 100*PC/n,main="percentage PC",type="l",xlab="time",ylab="%",ylim=c(0,100))
     plot(time, 100*DC/n,main="percentage DC",type="l",xlab="time",ylab="%",ylim=c(0,100))

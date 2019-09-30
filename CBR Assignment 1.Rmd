@@ -112,7 +112,12 @@ model.numericalSolution = numericalSolution(model, y0 = c(0, -5),
                                             add.legend = F)
 legend("topright", col = c("green", "orange"), legend = c("x", "y"), lty = 1)
 
+
 ```
+
+```{r}
+```
+
 
 
 
@@ -121,13 +126,20 @@ legend("topright", col = c("green", "orange"), legend = c("x", "y"), lty = 1)
 ```{r}
 
 # ystar is on indication of where the equilibrium is
-# function cab be used both for one and two equations 
+# function can be used both for one and two equations
+eq = c(0, 0)
 stab = stability(model, parameters = pars, system = "two.dim",
-                 ystar=c(0, 0), state.names = c("x", "y"))
+                 ystar = eq, state.names = c("x", "y"))
 ```
 
 
 
+# Question 3
+
+```{r}
+# You need to do this from the console
+# phasePlaneAnalysis(model, xlim = xlim, ylim = ylim, parameters = pars) 
+```
 
 
 
@@ -232,6 +244,7 @@ for (mod in c(model4, model5, model6, model7, model8)) {
   # Calculate the stability at the selected equilibrium
   stab = stability(mod, parameters = pars, system = "two.dim",
                  ystar=c(0, 0), state.names = c("x", "y"))
+  print("")
   
 }
 ```
@@ -248,6 +261,7 @@ nfkb = function(timepoint, state, parameters) {
 }
 
 pars = c(a = 3, b = 1, c = 2, d = 1, S = 0)
+pars = c(S = 0, a = 3, b = 1, c = 2, d = 1)
 
 # for setting the axis limits
 xlim = c(-10, 10) 
@@ -337,7 +351,8 @@ model.trajectory = trajectory(nfkb,
 
 # Calulate the N and I over time
 inival = c(0, 0)
-model.numericalSolution = numericalSolution(nfkb, y0 = inival, 
+model.numericalSolution = numericalSolution(nfkb, 
+                                            y0 = inival, 
                                             tlim = time_int, 
                                             type = "one",
                                             parameters = pars, 
@@ -345,7 +360,7 @@ model.numericalSolution = numericalSolution(nfkb, y0 = inival,
                                             col = c("green", "orange"), 
                                             ylim = ylim, 
                                             add.legend = F)
-legend("topright", col = c("green", "orange"), legend = c("x", "y"), lty = 1)
+legend("topright", col = c("green", "orange"), legend = c("I", "N"), lty = 1)
 
 # Plot x against y - why does this not work well?
 # ggplot() +
@@ -359,13 +374,50 @@ stab = stability(nfkb,
                  state.names = c("I", "N"))
 
 ```
+# Question 14
+
+```{r}
+# draw vector field
+nfkb.flowField = flowField(xlab = "IkB", ylab = "NFkB", 
+                           nfkb, 
+                           xlim = xlim, ylim = ylim, 
+                           parameters = pars, 
+                           points = 19, 
+                           add = FALSE, 
+                           state.names = c("I", "N"))
+# draw nullclines
+nfkb.nullclines = nullclines(nfkb, 
+                             xlim = xlim, ylim = ylim, 
+                             parameters = pars, 
+                             points = 500, 
+                             state.names = c("I", "N"))
+# draw trajectory
+nfkb.trajectory = trajectory(nfkb, 
+                             y0 = c(-5, -5), 
+                             tlim = c(0, 100), 
+                             parameters = pars, 
+                             state.names = c("I", "N"))
+
+# determine stability of equilibrium point
+eq = c(tail(model.numericalSolution$x, 1), tail(model.numericalSolution$y, 1))
+model.stability = stability(nfkb, 
+                            ystar = eq, 
+                            parameters = pars, 
+                            state.names = c("I","N"))
+```
+
+
 
 # Question 16 Auto inhibition for NFkB and IkB aligned and change together
 
 Not clear how to model this best
 
 ```{r}
-pars = c(a = 3, b = 0.1, c = 2, d = 0.1, S = 0)
+pars_ori = c(a = 3, b = 1, c = 2, d = 1, S = 0)
+pars_low = c(a = 3, b = 0.1, c = 2, d = 0.1, S = 0)
+pars_high = c(a = 3, b = 10, c = 2, d = 10, S = 0)
+
+pars = pars_low
 
 # for setting the axis limits
 xlim = c(-10, 10) 
@@ -388,7 +440,7 @@ model.nullclines = nullclines(nfkb,
 # draw trajectory
 model.trajectory = trajectory(nfkb, 
                               y0 = c(-5, -5), 
-                              tlim = c(0, 10), 
+                              tlim = c(0, 100), 
                               parameters = pars, 
                               state.names = c("I", "N"))
 

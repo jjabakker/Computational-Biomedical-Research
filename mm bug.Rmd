@@ -1,0 +1,54 @@
+---
+title: "Assignment 2"
+author: "Hans"
+date: "9/12/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(pacman)
+p_load(tidyverse)
+p_load(nycflights13)
+p_load(ggplot2)
+p_load(Deriv)
+p_load(deSolve)
+p_load(phaseR)
+theme_set(theme_minimal())
+```
+
+
+# Michaelis Menten
+
+```{r Michaelis Menten}
+
+library(deSolve)
+
+mm = function(t, state, parameters) { 
+  with(as.list(c(state, parameters)), {
+    dS = -k1 * (E0 - C) * S + kmin1 * C
+    dC =  k1 * (E0 - C) * S - kmin1 * C - k2 * C
+    dP =  k2 * C 
+    list(c(dS, dC, dP))
+  }) 
+}
+
+pars = c(k1 = 1, kmin1 = 1, k2 = 1, E0 = 1)
+inistate = c(S = 5, P = 0, C = 0)
+inistate = c(S = 5, C = 0, P = 0)
+
+time_series = seq(0, 50, by = 0.1)
+
+out = ode(y = inistate, 
+          times = time_series, 
+          func = mm, 
+          parms = pars)
+
+df = data.frame(out)
+
+ggplot(data = df) +
+  geom_line(mapping = aes(x=time, y = P), col= 'red') +
+  geom_line(mapping = aes(x=time, y = S), col = 'blue') +
+  geom_line(mapping = aes(x=time, y = C)) 
+  
+```
